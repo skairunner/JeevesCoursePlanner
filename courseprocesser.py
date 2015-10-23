@@ -70,7 +70,7 @@ for subject in data:
                     except:
                         component["notes"] = "" # has no notes
                 elif len(table) == 8:
-                    component["units"] = table[1]
+                    component["units"] = int(table[1].split(" ")[0])
                     component["number"] = table[2]
                     component["period"] = table[3]
                     temp = table[4].split("\n")
@@ -81,7 +81,7 @@ for subject in data:
                     component["componentType"] = temp[0]
                     component["details"] = temp[1]
                     try:
-                        component["notes"] = temp[2]
+                        component["notes"] = temp[2].split("Notes: ")[1]
                     except:
                         component["notes"] = ""
             except ValueError:

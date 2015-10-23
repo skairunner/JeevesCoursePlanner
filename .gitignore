@@ -1,2 +1,6 @@
 out/*
 *.json
+chromedriver
+pass
+possiblemajors.txt
+test.py
