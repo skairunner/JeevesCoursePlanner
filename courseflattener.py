@@ -22,7 +22,7 @@ import sys
     The keys will the the course's name (eg, INTM-SHU 191).
 """
 
-with open("courses.processed.json") as f:
+with open("out/courses.processed.json") as f:
     data = json.load(f)
 
 output = {}
@@ -35,11 +35,11 @@ for major in data:
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open("courses.flat.json", "w") as f:
+        with open("out/courses.flat.min.json", "w") as f:
             json.dump(output, f)
             quit()
 except:
     pass
 
-with open("courses.flat.json", "w") as f:
+with open("out/courses.flat.json", "w") as f:
     json.dump(output, f, indent=2)

@@ -3,6 +3,7 @@ import json
 import re
 from dateutil.parser import parse as dateparse
 import sys
+from sanitizr import Sanitizr
 
 """
 This file is to turn the raw data dump from albertscraper.py
@@ -15,9 +16,15 @@ Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
 
+# s is a set
+def addWordsToSet(line, s):
+    line = unicode(line)
+    line = line.translate(Sanitizr())
+    line = line.split()
+    for x in line:
+        s.add(x)
 
-
-with open("courses.json") as f:
+with open("out/courses.json") as f:
 	data = json.load(f)
 
 pattern_name = re.compile(r"(\w+), (\w+)") # eg, Zhang, Zheng or Non, Arkara
@@ -49,7 +56,7 @@ for subject in data:
         course["name"]  = course["table"].split(" | ")[0].split("\n")[1]
         course["title"] = " ".join(course["header"].split(" ")[2:])
         components = course["table"].split(course["name"])
-        course["components"] = []
+        course["components"] = [] 
         for comp in components:
             table = comp.split(" | ")
             course["components"].append({})
@@ -123,6 +130,30 @@ for subject in data:
                 pass
             if not len(component):
                 course["components"].pop()
+
+        course["desc"] = course["desc"].split("less description")[0]
+
+        # An array of component types
+        s = set()
+        for component in course["components"]:
+            s.add(component["componentType"])
+        course["requiredcomponents"] = list(s)
+
+
+        myset = set()
+        addWordsToSet(course["desc"], myset)
+        addWordsToSet(course["desc"], myset)
+        addWordsToSet(course["title"], myset)
+        for c in course["components"]:
+            addWordsToSet(c["componentType"], myset)
+            addWordsToSet(c["notes"], myset)
+            addWordsToSet(c["details"], myset)
+            try:
+                addWordsToSet(c["name"], myset)
+            except:
+                pass # no name
+        course["searchable"] = " ".join(myset)
+
         del course["table"]
         del course["header"]
 
@@ -130,10 +161,10 @@ for subject in data:
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open("courses.processed.min.json", "w") as f:
+        with open("out/courses.processed.min.json", "w") as f:
             json.dump(data, f)
         quit()
 except:
     pass
-with open("courses.processed.json", "w") as f:
+with open("out/courses.processed.json", "w") as f:
     json.dump(data, f, indent=2)

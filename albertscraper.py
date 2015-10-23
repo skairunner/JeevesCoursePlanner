@@ -153,6 +153,6 @@ for subject in selectables:
 
 print "Exporting to json"
 
-dumpJsonAndChmod(outdict, "courses.json")
+dumpJsonAndChmod(outdict, "out/courses.json")
 print "Done."
 driver.close()

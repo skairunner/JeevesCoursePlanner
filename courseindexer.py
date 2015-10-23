@@ -1,18 +1,12 @@
 import json
 import sys
 import codecs
+from sanitizr import Sanitizr
 
 """
 This file processes a courses.flat.json file to index its contents.
 """
 
-class Sanitizr:
-    def __getitem__(self, c):
-        char = unichr(c)
-        char = char.lower()
-        if char in u"abcdefghijklmnopqrstuvwxyz'- ":
-            return char
-        return None
 
 SkippedWords = ['']
 with open("skippedwords.txt") as f:
@@ -20,7 +14,7 @@ with open("skippedwords.txt") as f:
         l = l.strip()
         SkippedWords.append(l)
 
-with open("courses.flat.json") as f:
+with open("out/courses.flat.json") as f:
     data = json.load(f)
 
 majornames = {}
@@ -89,30 +83,19 @@ for coursecode in data:
                         doIndex(" ".join(component[cf]), coursecode)
 
 for k in index:
-    print k, len(index[k])
-
-things = []
-for k in index:
-    things.append((k, len(index[k])))
-
-things = sorted(things, key=lambda x : x[1])
-
-from pprint import pprint
-pprint(things)
-
-for k in index:
     index[k] = list(index[k])
 for i in unitindex:
     unitindex[i] = list(unitindex[i])
+print len(index)
 
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open("courses.index.json", "w") as f:
+        with open("out/courses.index.min.json", "w") as f:
             json.dump([index, unitindex], f)
             quit()
 except:
     pass
 
-with open("courses.index.json", "w") as f:
+with open("out/courses.index.json", "w") as f:
     json.dump([index, unitindex], f, indent=2)
