@@ -28,6 +28,22 @@
 	display: inline-block;
 }
 
+.details {
+
+}
+
+.desc {
+	padding-left: 5px;
+}
+
+.expandable {
+	padding-right: 5px;
+}
+
+.units {
+	padding-left: 5px;
+}
+
 #nothingmsg {
 	font-style: italic;
 	color: #BBB;
@@ -37,4 +53,49 @@
 .x {
 	color: #FFF;
 	padding-right: 5px;
+}
+
+.bigframe {
+	float: left;
+	position: relative;
+}
+
+#search {
+	width: 20%;
+	z-index: 1;
+	display:none;
+}
+
+#calendardiv {
+	width: 76%;
+	z-index: 0;
+}
+
+svg {
+	background: #fff;
+}
+
+.axis>.tick line,
+.axis>.tick path,
+.axis>path {
+	shape-rendering: crispEdges;
+	stroke:black;
+}
+
+.axis>path {
+	fill: none;
+}
+
+.classblock {
+	border: 2px solid black;
+}
+
+.verticalline {
+	stroke:#aaa;
+	stroke-width:1px;
+	shape-rendering: crispEdges;
+}
+
+text {
+	font-family: "Times New Roman", serif;
 }
