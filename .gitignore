@@ -4,3 +4,6 @@ chromedriver
 pass
 possiblemajors.txt
 test.py
+*.pyc
+d3.js
+underscore*
