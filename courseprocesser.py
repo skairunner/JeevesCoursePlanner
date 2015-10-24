@@ -47,8 +47,13 @@ def DateFromStr(s):
 
 # Turn a hh.mm AP str to [HH, mm] list
 def TimeFromStr(s):
-    dtime = dateparse(s)
-    return [dtime.hour, dtime.minute]
+    time, ap = s.split(" ")
+    h, m = time.split(".")
+    h = int(h)
+    m = int(m)
+    if ap == "PM":
+        h = h + 12
+    return [h, m]
 
 for subject in data:
     for sitecourseid in data[subject]:
