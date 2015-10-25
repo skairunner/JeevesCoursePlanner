@@ -122,18 +122,23 @@ for subject in data:
             try:
                 if "details" in component:
                     name = pattern_name.search(component["details"])
-                    time = pattern_time.search(component["details"]).group(0).split(" - ")
+                    try:
+                        time = pattern_time.search(component["details"]).group(0).split(" - ")
+                        component["starttime"] = TimeFromStr(time[0])
+                        component["endtime"] = TimeFromStr(time[1])
+                    except:
+                        pass
                     days = []
                     for x in ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]:
                         if x in component["details"]:
                             days.append(DayToNumber[x])
                     component["days"] = days
-                    component["name"] = [name.group(1), name.group(2)]
-
-                    component["starttime"] = TimeFromStr(time[0])
-                    component["endtime"] = TimeFromStr(time[1])
-            except AttributeError:
-                pass
+                    try:
+                        component["name"] = [name.group(1), name.group(2)]
+                    except:
+                        pass # no name specified
+            except AttributeError as e:
+                print e, component["details"];
             if not len(component):
                 course["components"].pop()
 
