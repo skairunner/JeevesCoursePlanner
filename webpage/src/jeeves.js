@@ -5,7 +5,6 @@ var wordindex = null;
 var unitindex = null;
 
 var filters = [];
-var expandedcourses = [];
 
 var axistransitiontime = 1200;
 /*
@@ -68,6 +67,7 @@ function smartPickColor(coursecode, sectionid) {
 	return pickColor(sectionid+1, pickColor(i,smartcolors));
 }
 
+// Gets a string representation of a time array
 function timestrFromTime(time) {
 	var h = time[0];
 	var m = time[1];
@@ -87,6 +87,7 @@ function timestrFromTime(time) {
 	return h+":"+m+am;
 }
 
+// returns the string "hh:mm am ~ hh:mm pm"
 function strFromSectionTime(sectiondata) {
 	var start = sectiondata.starttime;
 	var end = sectiondata.endtime;
@@ -95,44 +96,120 @@ function strFromSectionTime(sectiondata) {
 	return start + "—" + end;
 }
 
+// Takes the list of required components from course, and compares it
+// vs selected components. If not completely fulfilled, return
+// the components that need to be selected still.
+// sectionsSelected should a list of the actual components.
+function satisfiedCourseRequirements(courseinfo, sectionsSelected) {
+	var reqs = courseinfo.requiredcomponents;
+	var components = _.map(sectionsSelected, function(component){
+		if (component.coursedata.name == courseinfo.name) {
+			return component.sectiondata.componentType;
+		}
+		return null;
+	});
+	var require =  _.reduce(reqs, function(memo, req){
+		if (components.indexOf(req) == -1) {
+			memo.push(req);
+		}
+		return memo;
+	}, []);
+	return require;
+}
+
+function timeCollides(component) {
+	var days  = component.days;
+	var start = component.starttime;
+	var end   = component.endtime;
+	for (var i in coursesSelected) {
+		var selected = coursesSelected[i];
+		var cdays   = selected.days;
+		var cstart = selected.starttime;
+		var cend   = selected.endtime;
+		// if days or cstart or cend are null, continue to next iter.
+		if (!cstart || !days || !cend) {
+			continue;
+		}
+		var commondays = _.intersection(days, cdays);
+		if (!commondays) { // if they have no days in common, continue
+			continue;
+		}
+		// cases of collision: 
+		// 1. if cstart is before end
+		// 2. if cend is before start
+		if (cstart < end) return true;
+		if (cend > start) return true;
+	}
+	return false
+}
+
+// Combines the various filters and displays the results in the search area.
 function displayCourses(includeActive) {
 	if (includeActive) {
 		var results = filters.concat([[activefilter, activefilterResults]]);
 	} else {
 		var results = filters;
 	}
-
+	results = _.map(results, function(r) {
+		return r[1];
+	})
 	var coursecodes = [];
-	var finalcoursecodes = [];
+	var filteredcoursecodes = [];
 	// get all non-duplicates
 	for (x in results) {
-		for (code in results[x][1]) {
-			var code = results[x][1][code];
+		_.each(results[x], function(code) {
 			if (coursecodes.indexOf(code) == -1) {
 				coursecodes.push(code);
 			}
-		}	
+		});
 	}
 	// next, make sure every filter is satisfied.
-	for (x in coursecodes) {
-		var code = coursecodes[x];
-		var fits = true;
-		for (filter in results) {
-			var satisfying = results[filter][1];
-			if (satisfying.indexOf(code) == -1) {
-				fits = false;
-				break;
+	filteredcoursecodes = _.intersection.apply(_, results);
+	// single line of code that finds intersection of all course arrays! :D
+
+	// finalcoursecodes: each element is a [code, sections].
+	// sections is the list of sections ids to actually display
+	// If the sections is empty, return null.
+	var finalcoursecodes = _.map(filteredcoursecodes, function(code){
+		// If already taking course:
+		// 1. if all requirements filled, return null
+		var courseinfo = coursedata[code];
+		var required = satisfiedCourseRequirements(courseinfo, coursesSelected);
+		// 2. if not, exclude already taken componentTypes.
+		if (required.length == 0) {
+			return null;
+		}
+		var sections = _.map(courseinfo.components, function(comp){
+			if (required.indexOf(comp.componentType) == -1) {
+				return null;
 			}
+			return comp;
+		});
+		// If showconflicts is false, filter out those that conflict timewise
+		if (!d3.select("#showconflicts").property("checked")) {
+			sections = _.map(sections, function(section){
+				if (section == null) {
+					return null;
+				}
+				if (timeCollides(section)) {
+					return null;
+				}
+				return section;
+			});
+			sections = _.without(sections, null);
 		}
-		if (fits) {
-			finalcoursecodes.push(code);
-		}
-	}
+		if (sections.length == 0) return null;
+		return [code, sections];
+	});
+
+	// remove all null things.
+	finalcoursecodes = _.without(finalcoursecodes, null);
+	console.log(finalcoursecodes);
 	// each component needs its own entry.
 	d3.select('#searchresults').html('').selectAll(".courseholder").data(finalcoursecodes).enter()
 	  .append("div").classed("courseholder",true).each(resultFormatter);
+    
     // get number of child nodes. If zero, add a message.
-
     decideNothingMessage(d3.select("#searchresults"));
 }
 
@@ -152,9 +229,11 @@ function expandOrContractText(d, i) {
 
 // Draws courses and components
 function resultFormatter(d, i) {
-	var classcode = d;
+	var classcode = d[0];
+	var sectiondata = d[1];
 	var selection = d3.select(this);
 	var data = coursedata[classcode];
+
 	var header = selection.append("div").classed("header", true);
 	header.append("span").classed("coursecode",true).text(classcode);
 	header.append("span").classed("coursetitle", true).text(data.title);
@@ -167,7 +246,7 @@ function resultFormatter(d, i) {
 	}
 
 	var sections = selection.append("div").classed("sections", true)
-						.selectAll(".section").data(data.components).enter()
+						.selectAll(".section").data(sectiondata).enter()
 						.append("div").classed("section", true);
 	// hook up the onclick function
 	sections.on("click", function(d, i){
@@ -198,7 +277,7 @@ function sanitize(s) {
 	s = s.toLowerCase();
 	for (var i in s) {
 		c = s[i];
-		if ("abcdefghijklmnopqrstuvwxyz0123456789 ".indexOf(c)==-1) {
+		if ("abcdefghijklmnopqrstuvwxyz0123456789 -".indexOf(c)==-1) {
 			out += "";
 		} else {
 			out += c;
@@ -231,11 +310,15 @@ function decideNothingMessage(selection){
 	thing.text(msg);
 }
 
-function search(d) {
-	results = []
+// Recomputes intersection of filters.
+function refreshFilters() {
+
+}
+// Gets all courses that satisfy filter "d"
+function search(d, noindex) {
+	var results = []
 	// check for special keywords
 	if (d.indexOf("units:") == 0) {
-		activefilter = d;
 		d = d.substring(6,7);
 		// search for units only.
 		for (var course in unitindex[+d]) {
@@ -244,27 +327,37 @@ function search(d) {
 		}
 	} else {
 		// Find all the things that have d, and display.
-		activefilter = sanitize(d);
+		d = sanitize(d);
 		results = [];
+		console.log(!noindex);
 		// First check if it is in the index
-		if (activefilter in wordindex) {
-			for (var course in wordindex[activefilter]) {
-				course = wordindex[activefilter][course];
+		if ((!noindex) && (d in wordindex)) {
+			for (var course in wordindex[d]) {
+				course = wordindex[d][course];
 				results.push(course);
 			}
 		} else {
 			// if not in index, need to do it the hard way.
 			for (var course in coursedata) {			
 				course = coursedata[course];
-				if (course.searchable.indexOf(activefilter) >= 0) {
+				if (course.searchable.indexOf(d) >= 0) {
 					results.push(course.name);
 				}
 			}
 		}
 	}
-	activefilterResults = results;
-	// Display results.
-	displayCourses(true);
+	return results
+}
+
+// for testing purposes
+function setFilterTo(filter) {
+	filters.push([filter, search(filter, true)]);
+	d3.select("#filters").append("span")
+	  .datum(filter)
+	  .classed("filter", true)
+	  .html("<span class=\"x\">&#10005;</span>" + filter).on("click", removefilter);
+	displayCourses();
+  	decideNothingMessage(d3.select("#searchresults"));
 }
 
 function setFilter(box) {
@@ -282,38 +375,40 @@ function setFilter(box) {
 }
 
 function removefilter(d, i) {
-	var keys = [];
-	for (x in filters) {
-		keys.push(filters[x][0])
-	}
-	var index = keys.indexOf(d);
+	var index = _.findIndex(filters, function(f){
+		return f[0]
+	});
 	filters.splice(index, 1);
-	displayCourses();
 	d3.select(this).remove();
+	displayCourses(false);
 }
 
 function searchbox(){
 	if(coursedata && wordindex) {
-		if (event.keyCode == 13) {// 'enter' 
-			clearTimeout(searchboxTimeout);
-			buffer = this.value;
-			search(buffer);
+		activefilter = this.value;
+		clearTimeout(searchboxTimeout);	
+		if (event.keyCode == 13) {// 'enter' 	
+			activefilterResults = search(activefilter);
 			setFilter(this); // move from activefilter to filterlist
+			displayCourses();
 		} else {
-			buffer = this.value;
-			clearTimeout(searchboxTimeout);
-			searchboxTimeout = window.setTimeout(function(){search(buffer);}, 500);
+			searchboxTimeout = window.setTimeout(function(){
+				activefilterResults = search(activefilter);
+				displayCourses(true);
+			}, 500);
 		}
 	}
 }
 
 function addToCourses(code, sectionindex, sectiondata, element) {
 	var courseprofile = {
-		"coursedata": coursedata[code],
+		"coursedata"  : coursedata[code],
 		"sectionindex": sectionindex,
 		"sectiondata" : sectiondata
 	};
-	expandedcourses.push(courseprofile);
+	coursesSelected.push(courseprofile);
+	displayCourses(); // because need to update conflicting stuff
+	svgDrawCourses();
 }
 
 function minutesFromTime(time) {
@@ -322,6 +417,9 @@ function minutesFromTime(time) {
 	}
 	return time[0] * 60 + time[1];
 }
+
+
+///////////////////////////
 
 function svgDrawCourses() {
 	if (coursesSelected.length == 0){ 
@@ -389,10 +487,14 @@ function findTextWidth(text, font, target) {
 
 var TEXTTRUNLEN = 15;
 function drawCourseBlock(d, i) {
-	var me = d3.select(this);
+	var me = d3.select(this).html('');
 	var days = _.map(d.sectiondata.days, function(x){return DayFromInt[x];});
 	// get times for scale stuff
 	var t = d.sectiondata.starttime;
+	if (t == undefined) {
+		console.warn("The course " + d.coursedata.name + " does not have time info.");
+		return;
+	}
 	var starttime = new Date(2015, 10, 14, t[0], t[1]);
 	t = d.sectiondata.endtime;
 	var endtime = new Date(2015, 10, 14, t[0], t[1]);
@@ -414,13 +516,10 @@ function drawCourseBlock(d, i) {
 		// Finds text size by trial & error.
 		var texts = [d.coursedata.name + "-" + d.sectiondata.section,
 					 d.coursedata.title,
+					 d.sectiondata.name,
 					 strFromSectionTime(d.sectiondata),
 					 d.sectiondata.componentType];
 		var sizes = [];
-		if (d.coursedata.name == "INTM-SHU 240" &&
-			d.sectiondata.section == "002") {
-			console.log("boop");
-		}
 		_.each(texts, function(text) {
 			sizes.push(findTextWidth(text, "Times New Roman"
 								, dayscale.rangeBand()))
@@ -473,8 +572,6 @@ function removeCourseBlock(d, i) {
 	coursesSelected = _.without(coursesSelected, d);
 	svgDrawCourses();
 }
-
-///////////////////////////
 
 var timescale, timeaxis, dayscale, dayaxis;
 var axisorigin = "translate(50, 40)";
@@ -531,6 +628,11 @@ function initSVG() {
 
 //////////////////////////////
 
+
+
+
+//////////////////////////////
+
 function init() {
 	d3.json("courses.flat.json", function(e,d){
 		coursedata = d;
@@ -579,6 +681,8 @@ function init() {
 				}
 			];
 			svgDrawCourses();
+			setFilterTo("chin");
+			setFilterTo("201");
 		}
 	});
 	d3.json("courses.index.json", function(e,d){
