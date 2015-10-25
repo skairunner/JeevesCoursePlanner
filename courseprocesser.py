@@ -170,7 +170,6 @@ for subject in data:
         s = set()
         s.add(course["desc"])
         s.add(course["title"])
-        s.add(course["name"])
         for c in course["components"]:
             s.add(c["componentType"])
             s.add(c["notes"])
@@ -180,6 +179,7 @@ for subject in data:
             except:
                 pass # no name
         course["searchable"] = " ".join(s).translate(Sanitizr())
+        course["searchable"] += course["name"] # because numbers
         del course["table"]
         del course["header"]
 
