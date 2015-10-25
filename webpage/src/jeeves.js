@@ -117,28 +117,40 @@ function satisfiedCourseRequirements(courseinfo, sectionsSelected) {
 	return require;
 }
 
+// is a <= comparison.
+function cmptime(t1, t2) {
+	console.log(t1, t2);
+	if (t1[0] < t2[0]) {
+		return true;
+	} else if (t1[0] > t2[0]) {
+		return false;
+	}
+	return t1[1] <= t2[1];
+}
+
 function timeCollides(component) {
 	var days  = component.days;
 	var start = component.starttime;
 	var end   = component.endtime;
 	for (var i in coursesSelected) {
-		var selected = coursesSelected[i];
+		var selected = coursesSelected[i].sectiondata;
 		var cdays   = selected.days;
 		var cstart = selected.starttime;
 		var cend   = selected.endtime;
-		// if days or cstart or cend are null, continue to next iter.
-		if (!cstart || !days || !cend) {
+		// if cdays or cstart or cend are null, continue to next iter.
+		if (!cstart || !cdays || !cend) {
 			continue;
 		}
 		var commondays = _.intersection(days, cdays);
-		if (!commondays) { // if they have no days in common, continue
+		if (commondays.length == 0) { // if they have no days in common, continue
 			continue;
 		}
 		// cases of collision: 
-		// 1. if cstart is before end
-		// 2. if cend is before start
-		if (cstart <= end) return true;
-		if (cend >= start) return true;
+		// 1. if cstart is before end, while C doesn't end before it starts
+		// cstart <= end && !(cend, start)
+		if (cmptime(cstart, end) && !cmptime(cend, start)) return true;
+		// 2. if cend is after start, while cstart isn't after end
+		if (cmptime(start, cend) && !cmptime(end, cstart)) return true;
 	}
 	return false
 }
@@ -632,7 +644,7 @@ function init() {
 	d3.json("courses.flat.json", function(e,d){
 		coursedata = d;
 		// for testing.
-		if (false) {
+		if (true) {
 			coursesSelected = [
 				{
 					"coursedata": coursedata["INTM-SHU 240"],
