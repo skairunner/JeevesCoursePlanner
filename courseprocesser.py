@@ -52,7 +52,8 @@ def TimeFromStr(s):
     h = int(h)
     m = int(m)
     if ap == "PM":
-        h = h + 12
+        if h != 12:
+            h = h + 12
     return [h, m]
 
 for subject in data:
