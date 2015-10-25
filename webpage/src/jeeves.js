@@ -137,8 +137,8 @@ function timeCollides(component) {
 		// cases of collision: 
 		// 1. if cstart is before end
 		// 2. if cend is before start
-		if (cstart < end) return true;
-		if (cend > start) return true;
+		if (cstart <= end) return true;
+		if (cend >= start) return true;
 	}
 	return false
 }
@@ -204,7 +204,6 @@ function displayCourses(includeActive) {
 
 	// remove all null things.
 	finalcoursecodes = _.without(finalcoursecodes, null);
-	console.log(finalcoursecodes);
 	// each component needs its own entry.
 	d3.select('#searchresults').html('').selectAll(".courseholder").data(finalcoursecodes).enter()
 	  .append("div").classed("courseholder",true).each(resultFormatter);
@@ -249,9 +248,9 @@ function resultFormatter(d, i) {
 						.selectAll(".section").data(sectiondata).enter()
 						.append("div").classed("section", true);
 	// hook up the onclick function
-	sections.on("click", function(d, i){
+	sections.on("click", function(d){
 		// 'data' is the course info, 'd' the component info
-		addToCourses(data.name, i, d, this);
+		addToCourses(data.name, +d.section, d, this);
 	;});
 	// fill out info
 	sections.append("span").classed("sectionnum", true).text(function(d){
@@ -310,10 +309,6 @@ function decideNothingMessage(selection){
 	thing.text(msg);
 }
 
-// Recomputes intersection of filters.
-function refreshFilters() {
-
-}
 // Gets all courses that satisfy filter "d"
 function search(d, noindex) {
 	var results = []
@@ -329,7 +324,6 @@ function search(d, noindex) {
 		// Find all the things that have d, and display.
 		d = sanitize(d);
 		results = [];
-		console.log(!noindex);
 		// First check if it is in the index
 		if ((!noindex) && (d in wordindex)) {
 			for (var course in wordindex[d]) {
@@ -571,6 +565,7 @@ function removeCourseBlock(d, i) {
 	var me = d3.select(this.parentNode);
 	coursesSelected = _.without(coursesSelected, d);
 	svgDrawCourses();
+	displayCourses(); // to update collision and stuff
 }
 
 var timescale, timeaxis, dayscale, dayaxis;
@@ -637,7 +632,7 @@ function init() {
 	d3.json("courses.flat.json", function(e,d){
 		coursedata = d;
 		// for testing.
-		if (true) {
+		if (false) {
 			coursesSelected = [
 				{
 					"coursedata": coursedata["INTM-SHU 240"],
@@ -684,6 +679,7 @@ function init() {
 			setFilterTo("chin");
 			setFilterTo("201");
 		}
+		setFilterTo("lehman");
 	});
 	d3.json("courses.index.json", function(e,d){
 		wordindex = d[0];
@@ -691,4 +687,5 @@ function init() {
 	});
 	initSVG();
 	d3.select("#searchbox").on("keyup", searchbox);
+	d3.select("#showconflicts").on("click", function(){displayCourses();})
 }
