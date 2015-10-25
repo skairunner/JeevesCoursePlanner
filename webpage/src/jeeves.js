@@ -28,8 +28,44 @@ var DayFromInt = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 var coursesSelected = [];
 // Colors from colorbrewer2.org. 12 colors.
 var colors = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd','#ccebc5','#ffed6f'];
-function pickColor(i) {
-	return colors[i % colors.length];
+// carr = colorarray. if not provided, default to colors
+function pickColor(i, carr) {	
+	if (carr == undefined) {
+		carr = colors;
+	} 
+	var index = i % carr.length;
+	return carr[index];
+}
+
+// Returns the back ones first
+function rpickColor(i, carr) {
+	if (carr == undefined) {
+		carr = colors;
+	} 
+	var index = carr.length - i% carr.length - 1;
+	return carr[index];
+}
+
+var smartcolors = [
+	['#f7fbff','#deebf7','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#084594'],
+	['#f7fcf5','#e5f5e0','#c7e9c0','#a1d99b','#74c476','#41ab5d','#238b45','#005a32'],
+	['#fff5eb','#fee6ce','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04'],
+	['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#4a1486'],
+	['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'],
+	['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#525252','#252525']
+]
+
+var savedcolors = [];
+
+// sequentially traverses colors. same course gets similar colors
+function smartPickColor(coursecode, sectionid) {
+	var index = savedcolors.indexOf(coursecode);
+	if (index != -1) {
+		return pickColor(sectionid+1, pickColor(index,smartcolors));
+	}
+	i = savedcolors.length;
+	savedcolors.push(coursecode);
+	return pickColor(sectionid+1, pickColor(i,smartcolors));
 }
 
 function timestrFromTime(time) {
@@ -281,14 +317,19 @@ function addToCourses(code, sectionindex, sectiondata, element) {
 }
 
 function minutesFromTime(time) {
+	if (time == undefined) {
+		return "No time";
+	}
 	return time[0] * 60 + time[1];
 }
 
 function svgDrawCourses() {
 	if (coursesSelected.length == 0){ 
+		d3.select("#coursearea").html('');
 		// reset axis to original 8 to 6
-		changeTimeAxis([new Date(2015, 10, 14, 8, 0)
-		, new Date(2015, 10, 14, 18, 0)], 0, axistransitiontime);
+		changeTimeAxis(new Date(2015, 10, 14, 8, 0)
+			, new Date(2015, 10, 14, 18, 0), 0, axistransitiontime);
+		return;
 	}
 	// else, need to find new min and max times.
 	var min = _.min(coursesSelected, function(d){
@@ -306,11 +347,16 @@ function svgDrawCourses() {
 		, new Date(2015, 10, 14, maxtime, 0), 0, axistransitiontime);
 
 	// Next, draw the courses.
-	d3.select("#coursearea").selectAll(".classblocks").data(coursesSelected)
-	  .enter().append("g")
-	          .classed(".classblocks", true)
-	          .attr("transform", axisorigin)
-	          .each(drawCourseBlock);
+	var allcourses =  d3.select("#coursearea")
+						.selectAll(".classblocks")
+						.data(coursesSelected, function(k){
+							return k.coursedata.name + " " + k.sectionindex;
+						});		
+	allcourses.enter().append("g")
+      .classed("classblocks", true)
+      .attr("transform", axisorigin)
+  	allcourses.each(drawCourseBlock);		
+  	allcourses.exit().remove();
 }
 
 /**
@@ -350,7 +396,7 @@ function drawCourseBlock(d, i) {
 	var starttime = new Date(2015, 10, 14, t[0], t[1]);
 	t = d.sectiondata.endtime;
 	var endtime = new Date(2015, 10, 14, t[0], t[1]);
-	var color = pickColor(i);
+	var color = smartPickColor(d.coursedata.name, d.sectionindex+1);
 	// nifty scale usage
 	var startY = timescale(starttime);
 	var endY = timescale(endtime);
@@ -361,7 +407,8 @@ function drawCourseBlock(d, i) {
 		   .attr("x", dayscale(day))
 		   .attr("y", startY)
 		   .attr("width", dayscale.rangeBand())
-		   .attr("height", dY);
+		   .attr("height", dY)
+		   .on("click", removeCourseBlock);
 		rect.attr("fill", color);
 
 		// Finds text size by trial & error.
@@ -370,7 +417,10 @@ function drawCourseBlock(d, i) {
 					 strFromSectionTime(d.sectiondata),
 					 d.sectiondata.componentType];
 		var sizes = [];
-
+		if (d.coursedata.name == "INTM-SHU 240" &&
+			d.sectiondata.section == "002") {
+			console.log("boop");
+		}
 		_.each(texts, function(text) {
 			sizes.push(findTextWidth(text, "Times New Roman"
 								, dayscale.rangeBand()))
@@ -406,9 +456,22 @@ function drawCourseBlock(d, i) {
 					return d[0].substr(0,TEXTTRUNLEN);
 				}
 				return d[0];
+			})
+			.each(function(d,i){
+				if (i != 1) {
+					d3.select(this).classed("mousepassthru", true);
+				}
 			});
 	});
 
+}
+
+function removeCourseBlock(d, i) {
+	// As the context is an individual block, not all the blocks for
+	// this class, we need to get the parent node.
+	var me = d3.select(this.parentNode);
+	coursesSelected = _.without(coursesSelected, d);
+	svgDrawCourses();
 }
 
 ///////////////////////////
@@ -498,6 +561,21 @@ function init() {
 					"coursedata": coursedata["INTM-SHU 127"],
 					"sectionindex": 1,
 					"sectiondata": coursedata["INTM-SHU 127"].components[1]
+				},
+				{
+					"coursedata": coursedata["INTM-SHU 120"],
+					"sectionindex": 0,
+					"sectiondata": coursedata["INTM-SHU 120"].components[0]
+				},
+				{
+					"coursedata": coursedata["INTM-SHU 120"],
+					"sectionindex": 1,
+					"sectiondata": coursedata["INTM-SHU 120"].components[1]
+				},
+				{
+					"coursedata": coursedata["INTM-SHU 214"],
+					"sectionindex": 0,
+					"sectiondata": coursedata["INTM-SHU 214"].components[0]
 				}
 			];
 			svgDrawCourses();

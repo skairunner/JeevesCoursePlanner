@@ -99,3 +99,7 @@ svg {
 text {
 	font-family: "Times New Roman", serif;
 }
+
+.mousepassthru {
+	pointer-events: none;
+}
