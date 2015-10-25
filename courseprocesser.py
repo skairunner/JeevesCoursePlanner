@@ -146,10 +146,12 @@ for subject in data:
         course["requiredcomponents"] = list(s)
 
 
+        """
+        # Unique words
         myset = set()
         addWordsToSet(course["desc"], myset)
-        addWordsToSet(course["desc"], myset)
         addWordsToSet(course["title"], myset)
+        addWordsToSet(course["name"], myset)
         for c in course["components"]:
             addWordsToSet(c["componentType"], myset)
             addWordsToSet(c["notes"], myset)
@@ -158,8 +160,21 @@ for subject in data:
                 addWordsToSet(c["name"], myset)
             except:
                 pass # no name
-        course["searchable"] = " ".join(myset)
-
+        course["searchable"] = " ".join(myset)"""
+        # Unique strings
+        s = set()
+        s.add(course["desc"])
+        s.add(course["title"])
+        s.add(course["name"])
+        for c in course["components"]:
+            s.add(c["componentType"])
+            s.add(c["notes"])
+            s.add(c["details"])
+            try:
+                s.add(c["name"])
+            except:
+                pass # no name
+        course["searchable"] = " ".join(s).translate(Sanitizr())
         del course["table"]
         del course["header"]
 
