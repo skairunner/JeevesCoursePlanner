@@ -332,7 +332,11 @@ function search(d, noindex) {
 			course = unitindex[+d][course]
 			results.push(course);
 		}
-	} else {
+	} else if (d.indexOf("startsafter:") == 0) {
+		d = d.substring(12,20);
+	}
+
+	else {
 		// Find all the things that have d, and display.
 		d = sanitize(d);
 		results = [];
@@ -641,10 +645,10 @@ function initSVG() {
 //////////////////////////////
 
 function init() {
-	d3.json("courses.flat.json", function(e,d){
+	d3.json("src/courses.flat.json", function(e,d){
 		coursedata = d;
 		// for testing.
-		if (true) {
+		if (false) {
 			coursesSelected = [
 				{
 					"coursedata": coursedata["INTM-SHU 240"],
@@ -690,10 +694,11 @@ function init() {
 			svgDrawCourses();
 			setFilterTo("chin");
 			setFilterTo("201");
-		}
+
 		setFilterTo("lehman");
+		}
 	});
-	d3.json("courses.index.json", function(e,d){
+	d3.json("src/courses.index.json", function(e,d){
 		wordindex = d[0];
 		unitindex = d[1];
 	});
