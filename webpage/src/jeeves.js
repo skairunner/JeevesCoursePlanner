@@ -119,7 +119,6 @@ function satisfiedCourseRequirements(courseinfo, sectionsSelected) {
 
 // is a <= comparison.
 function cmptime(t1, t2) {
-	console.log(t1, t2);
 	if (t1[0] < t2[0]) {
 		return true;
 	} else if (t1[0] > t2[0]) {
@@ -228,7 +227,7 @@ function displayCourses(includeActive) {
 function expandOrContractText(d, i) {
 	var me = d3.select(this);
 	var text = d3.select(this.parentNode).select(".desctext");
-	var fulldesc = coursedata[me.datum()].desc;
+	var fulldesc = coursedata[me.datum()[0]].desc;
 	if (me.text() == "▸") {
 		me.text("▾");
 		text.text(fulldesc);
@@ -429,16 +428,28 @@ function minutesFromTime(time) {
 }
 
 
+function updateCreditsTotal() {
+	var credits = _.reduce(coursesSelected, function(memo, course){
+		if (course.sectiondata.units == undefined) {
+			return memo;
+		}
+		return memo + course.sectiondata.units
+	}, 0);
+	d3.select("#credits").text(credits);
+}
+
 ///////////////////////////
 
 function svgDrawCourses() {
+	updateCreditsTotal();
 	if (coursesSelected.length == 0){ 
 		d3.select("#coursearea").html('');
 		// reset axis to original 8 to 6
 		changeTimeAxis(new Date(2015, 10, 14, 8, 0)
 			, new Date(2015, 10, 14, 18, 0), 0, axistransitiontime);
 		return;
-	}
+	}  
+
 	// else, need to find new min and max times.
 	var min = _.min(coursesSelected, function(d){
 		return minutesFromTime(d.sectiondata.starttime);
@@ -639,7 +650,19 @@ function initSVG() {
 
 //////////////////////////////
 
+function exportCourseNumbers() {
+	var out = _.map(coursesSelected, function(d){
+		return [d.coursedata.name + "-" + d.sectiondata.section,
+		d.coursedata.title,
+		d.sectiondata.componentType,
+		d.sectiondata.number]
+	});
 
+	d3.select("#coursenums").html('').selectAll("tr").data(out)
+	  .enter().append("tr").selectAll("td").data(function(d){return d;})
+	  .enter()
+	  .append("td").text(function(d) {return d;});
+}
 
 
 //////////////////////////////
@@ -704,5 +727,6 @@ function init() {
 	});
 	initSVG();
 	d3.select("#searchbox").on("keyup", searchbox);
-	d3.select("#showconflicts").on("click", function(){displayCourses();})
+	d3.select("#showconflicts").on("click", function(){displayCourses();});
+	d3.select("#export").on("click", function(){exportCourseNumbers();});
 }

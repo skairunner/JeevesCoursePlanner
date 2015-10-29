@@ -10,6 +10,9 @@
 <link rel="stylesheet" type="text/css" href="src/jeeves.css">
 
 <body>
+	<div>
+		Total <span id="credits">0</span> credits
+	</div>
 	<div id="search" class="bigframe">
 		<input type="checkbox" id="showconflicts"><span class="optiondesc">Show classes that conflict</span>
 		<input type="text" id="searchbox">
@@ -20,6 +23,10 @@
 	</div>
 	<div id="calendardiv" class="bigframe">
 		<svg id="calendarsvg" height="600" width="600"></svg>
+	</div>
+	<div>
+		<button type="button" id="export">Get list of course numbers</button>
+		<table id="coursenums"></div>
 	</div>
 	<div style="display:inline-block">
 		<span class="title">Jeeves Course Planner</h1>
