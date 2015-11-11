@@ -2,11 +2,9 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>Jeeves Course Planner</title>
 </head>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
-<script>window.d3 || document.write('<script charset=\'utf-8\' src="src/d3.js">\x3C/script>')</script> <!-- fallback -->
-<script src="src/jeeves.js"></script>
+<script data-main="src/load" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js"></script>
+<!-- 
+<script src="src/jeeves.js"></script> -->
 <link rel="stylesheet" type="text/css" href="src/jeeves.css">
 
 <body>
@@ -22,7 +20,8 @@
 		</div>
 	</div>
 	<div id="calendardiv" class="bigframe">
-		<svg id="calendarsvg" height="600" width="600"></svg>
+		<svg id="calendarsvg" height="600" 
+		width="600" viewBox="0 0 600 600"></svg>
 	</div>
 	<div>
 		<button type="button" id="export">Get list of course numbers</button>
