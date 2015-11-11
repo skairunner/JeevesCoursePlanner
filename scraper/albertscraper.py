@@ -8,6 +8,7 @@ import getpass
 import time
 import json
 import subprocess
+import os
 
 """
 This file uses Selenium and Firefox Webdriver to scrape all course data for 
@@ -18,16 +19,18 @@ While the final result is put into courses.json, a json file is made for
 each major, in out/. 
 """
 
+DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
+
 def dumpJsonAndChmod(obj, fname):
     with open(fname, "w") as f:
         json.dump(obj, f)
-    subprocess.call(["chown", "skyrunner", fname])
+    subprocess.call(["chown", "skyrunner", DIRNAME + fname])
 
 myid = "ki539"
 print "ID is: " + myid
 # mypass = getpass.getpass("Password: ")
 mypass = None
-with open("pass") as f:
+with open(DIRNAME + "pass") as f:
     mypass = f.read()
 
 driver = webdriver.Firefox()
@@ -83,7 +86,7 @@ time.sleep(5)
 
 # On second thought, don't need to select the school.
 selectables = []
-with open("majors.txt") as f:
+with open(DIRNAME + "majors.txt") as f:
     for line in f:
         selectables.append(line.strip())
 

@@ -4,6 +4,7 @@ import re
 from dateutil.parser import parse as dateparse
 import sys
 from sanitizr import Sanitizr
+import os
 
 """
 This file is to turn the raw data dump from albertscraper.py
@@ -15,6 +16,7 @@ or splitting the "header" field into course code (eg, INTM-SHU 191) and title
 Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
+DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 # s is a set
 def addWordsToSet(line, s):
@@ -24,7 +26,7 @@ def addWordsToSet(line, s):
     for x in line:
         s.add(x)
 
-with open("out/courses.json") as f:
+with open(DIRNAME + "out/courses.json") as f:
 	data = json.load(f)
 
 pattern_name = re.compile(r"(\w+), (\w+)") # eg, Zhang, Zheng or Non, Arkara
@@ -187,10 +189,10 @@ for subject in data:
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open("out/courses.processed.min.json", "w") as f:
+        with open(DIRNAME + "out/courses.processed.min.json", "w") as f:
             json.dump(data, f)
         quit()
 except:
     pass
-with open("out/courses.processed.json", "w") as f:
+with open(DIRNAME + "out/courses.processed.json", "w") as f:
     json.dump(data, f, indent=2)

@@ -2,23 +2,24 @@ import json
 import sys
 import codecs
 from sanitizr import Sanitizr
-
+import os
 """
 This file processes a courses.flat.json file to index its contents.
 """
 
+DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 SkippedWords = ['']
-with open("skippedwords.txt") as f:
+with open(DIRNAME + "skippedwords.txt") as f:
     for l in f:
         l = l.strip()
         SkippedWords.append(l)
 
-with open("out/courses.flat.json") as f:
+with open(DIRNAME + "out/courses.flat.json") as f:
     data = json.load(f)
 
 majornames = {}
-with codecs.open("majors.txt", "r", "utf-8") as f:
+with codecs.open(DIRNAME + "majors.txt", "r", "utf-8") as f:
     for l in f:
         l = l.strip()
         l = l.split("(")
@@ -86,16 +87,15 @@ for k in index:
     index[k] = list(index[k])
 for i in unitindex:
     unitindex[i] = list(unitindex[i])
-print len(index)
 
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open("out/courses.index.min.json", "w") as f:
+        with open(DIRNAME + "out/courses.index.min.json", "w") as f:
             json.dump([index, unitindex], f)
             quit()
 except:
     pass
 
-with open("out/courses.index.json", "w") as f:
+with open(DIRNAME + "out/courses.index.json", "w") as f:
     json.dump([index, unitindex], f, indent=2)

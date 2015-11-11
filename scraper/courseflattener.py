@@ -1,6 +1,6 @@
 import json
 import sys
-
+import os
 """
 	hierarchy is changed from 
     = root
@@ -21,8 +21,9 @@ import sys
 
     The keys will the the course's name (eg, INTM-SHU 191).
 """
+DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
 
-with open("out/courses.processed.json") as f:
+with open(DIRNAME + "out/courses.processed.json") as f:
     data = json.load(f)
 
 output = {}
@@ -35,11 +36,11 @@ for major in data:
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open("out/courses.flat.min.json", "w") as f:
+        with open(DIRNAME + "out/courses.flat.min.json", "w") as f:
             json.dump(output, f)
             quit()
 except:
     pass
 
-with open("out/courses.flat.json", "w") as f:
+with open(DIRNAME + "out/courses.flat.json", "w") as f:
     json.dump(output, f, indent=2)
