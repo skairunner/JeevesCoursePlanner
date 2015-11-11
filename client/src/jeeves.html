@@ -1,0 +1,24 @@
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Jeeves Course Planner</title>
+</head>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+<script src="underscore.js"></script>
+<script>window.d3 || document.write('<script charset=\'utf-8\' src="src/d3.js">\x3C/script>')</script> <!-- fallback -->
+<script src="src/jeeves.js"></script>
+<link rel="stylesheet" type="text/css" href="src/jeeves.css">
+
+<body>
+	<div id="search" class="bigframe">
+		<input type="checkbox" id="showconflicts"><span class="optiondesc">Show classes that conflict</span>
+		<input type="text" id="searchbox">
+		<div id="filters"></div>
+		<div id="searchresults">
+			<span id="nothingmsg">Enter something to get started!</span>
+		</div>
+	</div>
+	<div id="calendardiv" class="bigframe">
+		<svg id="calendarsvg" height="600" width="600"></svg>
+	</div>
+</body>

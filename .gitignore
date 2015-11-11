@@ -7,3 +7,4 @@ test.py
 *.pyc
 d3.js
 underscore*
+*.log
