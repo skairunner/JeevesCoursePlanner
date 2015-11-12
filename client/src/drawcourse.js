@@ -7,6 +7,8 @@ define(['d3', 'utility'], function(d3, util){
 
 
 	var calendarwidth = 600;
+	var transitiontime = 1000;
+	function TT(){return transitiontime;}
 
 
 	function initcalendar(index, calendars) {
@@ -25,14 +27,13 @@ define(['d3', 'utility'], function(d3, util){
 		.orient("left");
 		obj.dayaxis = d3.svg.axis().scale(dayscale).orient("top");
 		var svg = d3.select("#calendarsvg").append("g")
-		.attr("id", "cal" + index).attr("class", "calendar");
+					.attr("id", "cal" + index).attr("class", "calendar")
+					.attr("transform", obj.axisorigin);
 		svg.append("g").attr("class", "verticallines");
 	    svg.append("g").attr("class", "coursearea");
 	    svg.append("g").attr("class", "timeaxis axis")
-		   .attr("transform", obj.axisorigin)
 		   .call(obj.timeaxis);
 	    svg.append("g").attr("class", "dayaxis axis")
-		   .attr("transform", obj.axisorigin)
 		   .call(obj.dayaxis);
 
 	   calendars.push(obj);
@@ -79,7 +80,6 @@ define(['d3', 'utility'], function(d3, util){
 			});
 		allcourses.enter().append("g")
 	      .classed("classblocks", true)
-	      .attr("transform", axisorigin)
 	  	allcourses.each(function(d,i){
 	  		drawCourseBlock(d, i, this, calendar);
 	  	});		
@@ -90,7 +90,7 @@ define(['d3', 'utility'], function(d3, util){
 		calendar.timescale.domain([timestart, timeend]);
 		var sel = d3.select(calendar.selector).select(".timeaxis");
 		sel.transition().ease("cubic-out")
-		  .duration(1000).delay(0).call(calendar.timeaxis);
+		  .duration(TT()).delay(0).call(calendar.timeaxis);
 	}
 
 	function updateCreditsTotal(obj) {
@@ -104,99 +104,120 @@ define(['d3', 'utility'], function(d3, util){
 	}
 
 	function removeCourseBlock(d, i, me, obj) {
-		// As the context is an individual block, not all the blocks for
-		// this class, we need to get the parent node.
-		var me = d3.select(this.parentNode);
 		obj.courses = _.without(obj.courses, d);
 		updateCreditsTotal(obj);
 		drawcalendar(obj);
 		//displayCourses(); // to update collision and stuff
 	}
 
+	function DateFromTimeArr(t) {
+		if (t == undefined) {
+			console.warn("The course " + d.coursedata.name + " does not have time info.");
+			return undefined;
+		}
+		return new Date(2015, 10, 14, t[0], t[1])
+	}
+
 	var TEXTTRUNLEN = 15;
-	function drawCourseBlock(d, i, me, obj) {
+	function drawCourseBlock(cdata, i, me, obj) {
 		var courses   = obj.courses;
 		var colors    = obj.colors;
 		var timescale = obj.timescale;
-		me = d3.select(me).html('');
+		me = d3.select(me);
 		
-		var days = _.map(d.sectiondata.days, function(x){
+		var days = _.map(cdata.sectiondata.days, function(x){
 			return util.DayFromInt[x];});
 		// get times for scale stuff
-		var t = d.sectiondata.starttime;
-		if (t == undefined) {
-			console.warn("The course " + d.coursedata.name + " does not have time info.");
+		var starttime = DateFromTimeArr(cdata.sectiondata.starttime);
+		var endtime = DateFromTimeArr(cdata.sectiondata.endtime);
+		if (starttime==undefined || endtime==undefined) {
 			return;
 		}
-		var starttime = new Date(2015, 10, 14, t[0], t[1]);
-		t = d.sectiondata.endtime;
-		var endtime = new Date(2015, 10, 14, t[0], t[1]);
-		var color = util.smartPickColor(d.coursedata.name, 
-			d.sectionindex+1,
-			colors);
+
+		var color = util.smartPickColor(cdata.coursedata.name, 
+										cdata.sectionindex+1,
+										colors);
 		// nifty scale usage
 		var startY = timescale(starttime);
-		var endY = timescale(endtime);
-		var dY = endY - startY;
+		var endY   = timescale(endtime);
+		var dY     = endY - startY;
 		// append a colored block for each class.
-		_.each(days, function(day, index) {
-			var rect = me.append("rect").classed("classblock", true)
-			   .attr("x", dayscale(day))
-			   .attr("y", startY)
-			   .attr("width", dayscale.rangeBand())
-			   .attr("height", dY)
-			   .on("click", function(d,i){removeCourseBlock(d, i, this, obj)});
-			rect.attr("fill", color);
-			// Finds text size by trial & error.
-			var texts = [d.coursedata.name + "-" + d.sectiondata.section,
-						 d.coursedata.title,
-						 d.sectiondata.name,
-						 util.strFromSectionTime(d.sectiondata),
-						 d.sectiondata.componentType];
-			var sizes = [];
-			_.each(texts, function(text) {
-				sizes.push(util.findTextWidth(text, "Times New Roman"
-									, dayscale.rangeBand()))
-			})
-			sizes[1] = util.findTextWidth(texts[1].substr(0,TEXTTRUNLEN)
-									, "Times New Roman", dayscale.rangeBand());
+		var update = me.selectAll(".classblock").data(days);
+		var enter  = update.enter();
+		enter.append("g").classed("classblock", true)
+		     .attr("transform", function(d){
+		     	return "translate(" + dayscale(d) + ")";
+		     });
+		// update selection
+		update.transition().duration(TT())
+		                .attr("transform", function(d){
+					return "translate(" + dayscale(d) + "," + startY + ")";});
 
-			var textdata = _.zip(texts, sizes);
+        var rectupdate = update.selectAll('rect')
+				 .data(['.']);
 
-			// put text.
-			me.selectAll(".blocktext" + index).data(textdata).enter()
-			    .append("text").classed("blocktext", true)
-				.attr("x", dayscale(day))
-				.attr("y", function(d,i){return startY + (i+0.5)*dY/texts.length;})
-				.on("mouseover", function(d,i){
+	    var textupdate = update.selectAll(".blocktext").data(function(d){
+					var texts = [cdata.coursedata.name + "-" + cdata.sectiondata.section,
+							 cdata.coursedata.title,
+							 cdata.sectiondata.name,
+							 util.strFromSectionTime(cdata.sectiondata),
+							 cdata.sectiondata.componentType];
+					var sizes = _.map(texts, function(text) {
+						return util.findTextWidth(text, "Times New Roman", dayscale.rangeBand())
+					});
+					// b.c. the 1th text is usually very long
+					sizes[1] = util.findTextWidth(texts[1].substr(0,TEXTTRUNLEN), "Times New Roman", dayscale.rangeBand());
+					return _.zip(texts, sizes);
+				});
+
+	    rectupdate.transition().duration(TT()).attr("height", dY);
+		textupdate.transition().duration(TT()).attr("y", function(d,i){return (i+1)*dY/6;});
+		
+
+		rectupdate.enter()
+		     .append("rect")
+		     .attr("height", dY/2)
+		     .on("click", function(d,i){removeCourseBlock(cdata, i, this, obj);})
+		     .attr("fill", color)
+		     .attr("width", dayscale.rangeBand())
+		     .transition().duration(TT())
+		     .attr("height", dY);
+
+		textupdate.enter()
+		 	 .append("text").classed("blocktext", true)
+		     .attr("y", function(d,i){return (i+1)*dY/6/2;})
+		     .on("mouseover", function(d,i){
 					if (i == 1) {					
 						d3.select(this).text(d[0]);
 					}
 				})
-				.on("mouseout", function(d,i){
-					if (i == 1) {					
-						d3.select(this).text(d[0].substr(0,TEXTTRUNLEN));
-					}
-				})
-				.style("font-size", function(d){
+			 .on("mouseout", function(d,i){
+				if (i == 1) {					
+					d3.select(this).text(d[0].substr(0,TEXTTRUNLEN));
+				}})
+			 .style("font-size", function(d){
 					if (i==1) {
 						return 
 					}
 					return d[1] + "px";
 				})
-				.text(function(d,i){
+			 .text(function(d,i){
 					if (i==1) {
 						return d[0].substr(0,TEXTTRUNLEN);
 					}
 					return d[0];
 				})
-				.each(function(d,i){
-					if (i != 1) {
-						d3.select(this).classed("mousepassthru", true);
-					}
-				});
-		});
+			 .classed("mousepassthru", function(d,i){
+				if (i != 1) { return true;}
+				return false;
+				})
+			 .transition().duration(TT())
+			 .attr("y", function(d,i){return (i+1)*dY/6;});
 
+        var updatefunc = function(){
+			
+		};
+		updatefunc();
 	}
 
 	function redrawLines(axisorigin) {

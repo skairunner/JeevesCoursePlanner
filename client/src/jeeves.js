@@ -341,11 +341,7 @@ function(d3, _, util, draw){
 		calendars[active].courses.push(courseprofile);
 		displayCourses(); // because need to update conflicting stuff
 		draw.drawcalendar(calendars[0]);
-	}
-
-
-
-	
+	}	
 
 	//////////////////////////////
 
@@ -366,11 +362,11 @@ function(d3, _, util, draw){
 
 	//////////////////////////////
 
-	function init() {
+	function init(testing) {
 		d3.json("src/courses.flat.json", function(e,d){
 			coursedata = d;
 			// for testing.
-			if (true) {
+			if (testing) {
 				calendars[0].courses = [
 					{
 						"coursedata": coursedata["INTM-SHU 240"],
@@ -415,11 +411,9 @@ function(d3, _, util, draw){
 				];
 				draw.updateCreditsTotal(calendars[0]);
 				draw.drawcalendar(calendars[0]);
-				setFilterTo("chin");
-				setFilterTo("201");
-
-			setFilterTo("lehman");
+				
 			}
+			setFilterTo("lehman");
 		});
 		d3.json("src/courses.index.json", function(e,d){
 			wordindex = d[0];

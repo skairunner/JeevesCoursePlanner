@@ -9,5 +9,5 @@ requirejs.config({
 require([
 	'jeeves'
 ], function(jeeves) {
-	jeeves.startjeeves();
+	jeeves.startjeeves(true);
 });
