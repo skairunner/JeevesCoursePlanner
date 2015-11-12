@@ -8,7 +8,9 @@ define(['d3', 'utility'], function(d3, util){
 
 	var calendarwidth = 600;
 	var transitiontime = 1000;
+	var transitiontype = "cubic-out";
 	function TT(){return transitiontime;}
+	function TTy(){return transitiontype;}
 
 
 	function initcalendar(index, calendars) {
@@ -82,14 +84,18 @@ define(['d3', 'utility'], function(d3, util){
 	      .classed("classblocks", true)
 	  	allcourses.each(function(d,i){
 	  		drawCourseBlock(d, i, this, calendar);
-	  	});		
-	  	allcourses.exit().remove();
+	  	});
+	  	var exit = allcourses.exit();
+	  	exit.attr("transform", "scale(1, 1)")
+	  			  .transition().duration(TT()).ease(TTy())
+	  	          .attr("transform", "scale(1, 0.01)");
+	  	window.setTimeout(function(){exit.remove();}, TT());
 	}
 
 	function changeTimeAxis(calendar, timestart, timeend) {
 		calendar.timescale.domain([timestart, timeend]);
 		var sel = d3.select(calendar.selector).select(".timeaxis");
-		sel.transition().ease("cubic-out")
+		sel.transition().ease(TTy())
 		  .duration(TT()).delay(0).call(calendar.timeaxis);
 	}
 
@@ -120,6 +126,10 @@ define(['d3', 'utility'], function(d3, util){
 
 	var TEXTTRUNLEN = 15;
 	function drawCourseBlock(cdata, i, me, obj) {
+		function fontsizecallback(d, i) {
+			return d[1] + "px";
+		}
+
 		var courses   = obj.courses;
 		var colors    = obj.colors;
 		var timescale = obj.timescale;
@@ -146,12 +156,13 @@ define(['d3', 'utility'], function(d3, util){
 		var enter  = update.enter();
 		enter.append("g").classed("classblock", true)
 		     .attr("transform", function(d){
-		     	return "translate(" + dayscale(d) + ")";
+		     	return "translate(" + dayscale(d) + "," + startY + ")";
 		     });
 		// update selection
-		update.transition().duration(TT())
+		update.transition().ease(TTy()).duration(TT())
 		                .attr("transform", function(d){
 					return "translate(" + dayscale(d) + "," + startY + ")";});
+
 
         var rectupdate = update.selectAll('rect')
 				 .data(['.']);
@@ -170,8 +181,8 @@ define(['d3', 'utility'], function(d3, util){
 					return _.zip(texts, sizes);
 				});
 
-	    rectupdate.transition().duration(TT()).attr("height", dY);
-		textupdate.transition().duration(TT()).attr("y", function(d,i){return (i+1)*dY/6;});
+	    rectupdate.transition().ease(TTy()).duration(TT()).attr("height", dY);
+		textupdate.transition().ease(TTy()).duration(TT()).attr("y", function(d,i){return (i+1)*dY/6;});
 		
 
 		rectupdate.enter()
@@ -180,7 +191,7 @@ define(['d3', 'utility'], function(d3, util){
 		     .on("click", function(d,i){removeCourseBlock(cdata, i, this, obj);})
 		     .attr("fill", color)
 		     .attr("width", dayscale.rangeBand())
-		     .transition().duration(TT())
+		     .transition().ease(TTy()).duration(TT())
 		     .attr("height", dY);
 
 		textupdate.enter()
@@ -195,12 +206,7 @@ define(['d3', 'utility'], function(d3, util){
 				if (i == 1) {					
 					d3.select(this).text(d[0].substr(0,TEXTTRUNLEN));
 				}})
-			 .style("font-size", function(d){
-					if (i==1) {
-						return 
-					}
-					return d[1] + "px";
-				})
+			 .style("font-size", fontsizecallback)
 			 .text(function(d,i){
 					if (i==1) {
 						return d[0].substr(0,TEXTTRUNLEN);
@@ -211,13 +217,8 @@ define(['d3', 'utility'], function(d3, util){
 				if (i != 1) { return true;}
 				return false;
 				})
-			 .transition().duration(TT())
+			 .transition().ease(TTy()).duration(TT())
 			 .attr("y", function(d,i){return (i+1)*dY/6;});
-
-        var updatefunc = function(){
-			
-		};
-		updatefunc();
 	}
 
 	function redrawLines(axisorigin) {
