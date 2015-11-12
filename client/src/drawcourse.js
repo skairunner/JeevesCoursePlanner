@@ -42,6 +42,7 @@ define(['d3', 'utility'], function(d3, util){
 		var svg = d3.select("#calendarsvg").append("g")
 					.attr("id", obj.selector.slice(1,obj.selector.length)).attr("class", "calendar")
 					.attr("transform", obj.axisorigin + " scale(0, 0)");
+		svg.append("g").attr("class", "removed");
 		svg.transition().duration(TT()).ease(TTy())
 			.attr("transform", obj.axisorigin + " scale(1, 1)");
 		svg.append("g").attr("class", "verticallines");
@@ -51,7 +52,6 @@ define(['d3', 'utility'], function(d3, util){
 	    svg.append("g").attr("class", "dayaxis axis")
 		   .call(obj.dayaxis);
 	   calendars.push(obj);
-	   console.log(calendars);
 	}
 
 	function movecalendar(calendar, oldsel) {
@@ -125,16 +125,26 @@ define(['d3', 'utility'], function(d3, util){
 				return k.coursedata.name + " " + k.sectionindex;
 			});
 		allcourses.enter().append("g")
-	      .classed("classblocks", true)
-	  	allcourses.each(function(d,i){
+	      .classed("classblocks", true);
+  		allcourses.each(function(d,i){
 	  		drawCourseBlock(d, i, this, calendar);
 	  	});
 	  	var exit = allcourses.exit();
-	  	exit.selectAll("*")
-  			.transition().duration(TT()).ease(TTy())
-  			.style("opacity", "0");
-	  			
-	  	window.setTimeout(function(){exit.remove();}, TT());
+	  	// there are nodes to remove
+	  	if (exit[0].length != 0) {
+	  		var removed = exit.remove();
+	  		if (removed.node() != null) {
+	  			svg.select(".removed").append(function(){
+		  		console.log(removed.node());
+		  		return removed.node();
+		  		});
+		  		exit.selectAll("*")
+	  			.transition().duration(TT()).ease(TTy())
+	  			.style("opacity", "0")
+	  			.remove();
+				exit.transition().duration(TT()).ease(TTy()).remove();
+	  		}
+	  	}
 	}
 
 	function transitionViewTo(index, calendars) {

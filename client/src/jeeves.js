@@ -79,21 +79,20 @@ function(d3, _, util, draw){
 
 	// Combines the various filters and displays the results in the search area.
 	function displayCourses(includeActive) {
-		console.log(".");
 		if (includeActive) {
 			var results = filters.concat([[activefilter, activefilterResults]]);
 		} else {
-			var results = filters;
+			var results = filters.concat();
 		}
 		results = _.map(results, function(r) {
+			if (r[1].length == 0) return null;
 			return r[1];
 		});
-		var coursecodes = [];
-		var filteredcoursecodes = [];
+		results = _.compact(results); // remove empty filters
 		// get all non-duplicates
-		coursecodes = _.uniq(results);
+		var coursecodes = _.uniq(results);
 		// next, make sure every filter is satisfied.
-		filteredcoursecodes = _.intersection.apply(_, results);
+		var filteredcoursecodes = _.intersection.apply(_, results);
 		// single line of code that finds intersection of all course arrays! :D
 
 		// finalcoursecodes: each element is a [code, sections].
@@ -108,31 +107,24 @@ function(d3, _, util, draw){
 			if (required.length == 0) {
 				return null;
 			}
-			var sections = _.map(courseinfo.components, function(comp){
+			var sections = _.filter(courseinfo.components, function(comp){
 				if (required.indexOf(comp.componentType) == -1) {
-					return null;
+					return false
 				}
-				return comp;
+				return true;
 			});
 			// If showconflicts is false, filter out those that conflict timewise
 			if (!d3.select("#showconflicts").property("checked")) {
-				sections = _.map(sections, function(section){
-					if (section == null) {
-						return null;
-					}
-					if (timeCollides(section, calendars[active].courses)) {
-						return null;
-					}
-					return section;
+				sections = _.filter(sections, function(section){
+					return !timeCollides(section, calendars[active].courses);
 				});
-				sections = _.without(sections, null);
 			}
 			if (sections.length == 0) return null;
 			return [code, sections];
 		});
 
 		// remove all null things.
-		finalcoursecodes = _.without(finalcoursecodes, null);
+		finalcoursecodes = _.compact(finalcoursecodes);
 		// each component needs its own entry.
 		d3.select('#searchresults').html('').selectAll(".courseholder").data(finalcoursecodes).enter()
 		  .append("div").classed("courseholder",true).each(resultFormatter);
@@ -179,7 +171,7 @@ function(d3, _, util, draw){
 		// hook up the onclick function
 		sections.on("click", function(d){
 			// 'data' is the course info, 'd' the component info
-			addToCourses(data.name, +d.section, d, this);
+			addToCourses(data.name, +d.section, d);
 		;});
 		// fill out info
 		sections.append("span").classed("sectionnum", true).text(function(d){
@@ -317,7 +309,7 @@ function(d3, _, util, draw){
 			if (event.keyCode == 13) {// 'enter' 	
 				activefilterResults = search(activefilter);
 				setFilter(this); // move from activefilter to filterlist
-				displayCourses();
+				displayCourses(false);
 			} else {
 				searchboxTimeout = window.setTimeout(function(){
 					activefilterResults = search(activefilter);
@@ -327,7 +319,7 @@ function(d3, _, util, draw){
 		}
 	}
 
-	function addToCourses(code, sectionindex, sectiondata, element) {
+	function addToCourses(code, sectionindex, sectiondata) {
 		var courseprofile = {
 			"coursedata"  : coursedata[code],
 			"sectionindex": sectionindex,
@@ -357,7 +349,7 @@ function(d3, _, util, draw){
 	function newcalendar() {
 		draw.initcalendar(calendars);
 		util.transitionViewTo(calendars.length-1, calendars);
-		displayCourses();
+		displayCourses(true);
 	}
 
 	function clonecalendar() {
