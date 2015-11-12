@@ -110,3 +110,19 @@ text {
 .mousepassthru {
 	pointer-events: none;
 }
+
+#coursenums tr:nth-child(2n+1) {
+	background-color:#ece7f2;
+}
+
+#coursenums {
+	border: 2px solid black;
+}
+
+.title {
+	font-style: italic;
+}
+
+.version {
+	color:#555;
+}

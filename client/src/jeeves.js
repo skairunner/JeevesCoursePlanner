@@ -1,16 +1,14 @@
 define(['d3', 'underscore', 'utility', 'drawcourse'], 
 function(d3, _, util, draw){
-	var coursesSelected = [];
 	///////
 	var calendars = []; // a list of all calendar datas.
+	var active    = 0;
 
 	var coursedata = null;
 	var wordindex = null;
 	var unitindex = null;
 
 	var filters = [];
-
-	var axistransitiontime = 1200;
 	/*
 	{
 		"filtername": [
@@ -52,12 +50,12 @@ function(d3, _, util, draw){
 		return require;
 	}
 
-	function timeCollides(component) {
+	function timeCollides(component, courses) {
 		var days  = component.days;
 		var start = component.starttime;
 		var end   = component.endtime;
-		for (var i in coursesSelected) {
-			var selected = coursesSelected[i].sectiondata;
+		for (var i in courses) {
+			var selected = courses[i].sectiondata;
 			var cdays   = selected.days;
 			var cstart = selected.starttime;
 			var cend   = selected.endtime;
@@ -88,7 +86,7 @@ function(d3, _, util, draw){
 		}
 		results = _.map(results, function(r) {
 			return r[1];
-		})
+		});
 		var coursecodes = [];
 		var filteredcoursecodes = [];
 		// get all non-duplicates
@@ -110,7 +108,7 @@ function(d3, _, util, draw){
 			// If already taking course:
 			// 1. if all requirements filled, return null
 			var courseinfo = coursedata[code];
-			var required = satisfiedCourseRequirements(courseinfo, coursesSelected);
+			var required = satisfiedCourseRequirements(courseinfo, calendars[active].courses);
 			// 2. if not, exclude already taken componentTypes.
 			if (required.length == 0) {
 				return null;
@@ -127,7 +125,7 @@ function(d3, _, util, draw){
 					if (section == null) {
 						return null;
 					}
-					if (timeCollides(section)) {
+					if (timeCollides(section, calendars[active].courses)) {
 						return null;
 					}
 					return section;
@@ -340,7 +338,7 @@ function(d3, _, util, draw){
 			"sectionindex": sectionindex,
 			"sectiondata" : sectiondata
 		};
-		coursesSelected.push(courseprofile);
+		calendars[active].courses.push(courseprofile);
 		displayCourses(); // because need to update conflicting stuff
 		draw.drawcalendar(calendars[0]);
 	}
@@ -352,7 +350,7 @@ function(d3, _, util, draw){
 	//////////////////////////////
 
 	function exportCourseNumbers() {
-		var out = _.map(coursesSelected, function(d){
+		var out = _.map(calendars[active].courses, function(d){
 			return [d.coursedata.name + "-" + d.sectiondata.section,
 			d.coursedata.title,
 			d.sectiondata.componentType,
