@@ -51,28 +51,26 @@ define(['d3', 'utility'], function(d3, util){
 		var timeaxis   = calendar.timeaxis;
 
 		if (courses.length == 0){ 
-			svg.select('.coursearea').html('');
 			// reset axis to original 8 to 6
 			changeTimeAxis(calendar, new Date(2015, 10, 14, 8, 0)
 				, new Date(2015, 10, 14, 18, 0));
-			console.log(".");
-			return;
-		}
 
-		// else, need to find new min and max times.
-		var min = _.min(courses, function(d){
-			return util.toMinutes(d.sectiondata.starttime);
-		});
-		var max = _.max(courses, function(d){
-			return util.toMinutes(d.sectiondata.endtime);
-		});
-		min = util.toMinutes(min.sectiondata.starttime);
-		max = util.toMinutes(max.sectiondata.endtime);
-		// If doing mintime, round down. If doing maxtime, round up.
-		var mintime = Math.floor(min/60);
-		var maxtime = Math.ceil(max/60);
-		changeTimeAxis(calendar, new Date(2015, 10, 14, mintime, 0)
-			, new Date(2015, 10, 14, maxtime, 0));
+		} else {
+			// else, need to find new min and max times.
+			var min = _.min(courses, function(d){
+				return util.toMinutes(d.sectiondata.starttime);
+			});
+			var max = _.max(courses, function(d){
+				return util.toMinutes(d.sectiondata.endtime);
+			});
+			min = util.toMinutes(min.sectiondata.starttime);
+			max = util.toMinutes(max.sectiondata.endtime);
+			// If doing mintime, round down. If doing maxtime, round up.
+			var mintime = Math.floor(min/60);
+			var maxtime = Math.ceil(max/60);
+			changeTimeAxis(calendar, new Date(2015, 10, 14, mintime, 0)
+				, new Date(2015, 10, 14, maxtime, 0));
+		}	
 
 		// Next, draw the courses.
 		var allcourses = svg.select(".coursearea")
@@ -86,9 +84,10 @@ define(['d3', 'utility'], function(d3, util){
 	  		drawCourseBlock(d, i, this, calendar);
 	  	});
 	  	var exit = allcourses.exit();
-	  	exit.attr("transform", "scale(1, 1)")
-	  			  .transition().duration(TT()).ease(TTy())
-	  	          .attr("transform", "scale(1, 0.01)");
+	  	exit.selectAll("*")
+	  			.transition().duration(TT()).ease(TTy())
+	  			.style("opacity", "0");
+	  			
 	  	window.setTimeout(function(){exit.remove();}, TT());
 	}
 
