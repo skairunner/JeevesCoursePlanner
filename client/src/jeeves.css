@@ -24,7 +24,6 @@
 	padding-bottom: 2px;
 	border-radius: 25px;
 	background: #6CF;
-	/*border: 2px solid;*/
 	display: inline-block;
 }
 
@@ -44,6 +43,10 @@
 	padding-left: 5px;
 }
 
+#footer {
+	width: 100%;
+}
+
 #nothingmsg {
 	font-style: italic;
 	color: #BBB;
@@ -61,16 +64,29 @@
 }
 
 #search {
-	width: 20%;
+	width: 200px;
+	height:600px;
 	z-index: 1;
+	margin-left: -200px;
+	overflow:hidden;
+}
+
+#searchresults {
+	overflow-y:auto;
+	height:100%;
 }
 
 #searchbox {
 	width: 100%;
 }
 
+#container {
+	padding-left: 200px;
+}
+
 #calendardiv {
-	width: 76%;
+	width: calc(100%-10px);
+	margin-left: 10px;
 	z-index: 0;
 }
 
@@ -125,4 +141,32 @@ text {
 
 .version {
 	color:#555;
+}
+
+#buttonbar {
+	margin-left: auto;
+	margin-right: auto;
+	padding: 10px 10px;
+	width: 80%;
+	display: inline-block;
+	text-align: center;
+}
+
+#rightbuttons {
+	float: right;
+	text-align:center;
+	padding-left: 10px;
+}
+
+#leftbuttons {
+	float:left;
+	text-align:center;
+	padding-right: 20px;
+}
+
+#calendartitle {
+	display: inline;
+	margin-left: auto;
+	margin-right: auto;
+	width: 50%;
 }

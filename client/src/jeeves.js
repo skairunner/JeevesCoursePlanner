@@ -79,6 +79,7 @@ function(d3, _, util, draw){
 
 	// Combines the various filters and displays the results in the search area.
 	function displayCourses(includeActive) {
+		console.log(".");
 		if (includeActive) {
 			var results = filters.concat([[activefilter, activefilterResults]]);
 		} else {
@@ -90,13 +91,7 @@ function(d3, _, util, draw){
 		var coursecodes = [];
 		var filteredcoursecodes = [];
 		// get all non-duplicates
-		for (x in results) {
-			_.each(results[x], function(code) {
-				if (coursecodes.indexOf(code) == -1) {
-					coursecodes.push(code);
-				}
-			});
-		}
+		coursecodes = _.uniq(results);
 		// next, make sure every filter is satisfied.
 		filteredcoursecodes = _.intersection.apply(_, results);
 		// single line of code that finds intersection of all course arrays! :D
@@ -312,7 +307,7 @@ function(d3, _, util, draw){
 		});
 		filters.splice(index, 1);
 		d3.select(this).remove();
-		displayCourses(false);
+		displayCourses(true);
 	}
 
 	function searchbox(){
@@ -327,7 +322,7 @@ function(d3, _, util, draw){
 				searchboxTimeout = window.setTimeout(function(){
 					activefilterResults = search(activefilter);
 					displayCourses(true);
-				}, 500);
+				}, 100);
 			}
 		}
 	}
@@ -339,8 +334,8 @@ function(d3, _, util, draw){
 			"sectiondata" : sectiondata
 		};
 		calendars[active].courses.push(courseprofile);
-		displayCourses(); // because need to update conflicting stuff
-		draw.drawcalendar(calendars[0]);
+		displayCourses(true); // because need to update conflicting stuff
+		draw.drawcalendar(calendars[active]);
 	}	
 
 	//////////////////////////////
@@ -359,10 +354,68 @@ function(d3, _, util, draw){
 		  .append("td").text(function(d) {return d;});
 	}
 
+	function newcalendar() {
+		draw.initcalendar(calendars);
+		util.transitionViewTo(calendars.length-1, calendars);
+		displayCourses();
+	}
 
-	//////////////////////////////
+	function clonecalendar() {
+		var current = calendars[active];
+		draw.initcalendar(calendars);
+		var calendar = calendars[calendars.length-1];
+		// shallow copy
+		calendar.courses = _.map(current.courses, function(d){return d;});
+		draw.drawcalendar(calendars[calendars.length-1]);
+		draw.transitionViewTo(calendars.length-1, calendars);
+		active = calendars.length - 1;
+		displayCourses(true);
+	}
+
+	function askremovecallback(me) {
+		d3.select(me).text("Delete").on("click", function(){askremove(calendars[active], this);});
+	}
+
+	function wait(me) {
+		window.setTimeout(function(){
+		d3.select(me).text("Delete").on("click", function(){askremovecallback(this);});
+		}, 500);
+	}
+
+	function askremove(d, me) {
+		var timeout = window.setTimeout(function(){
+			askremovecallback(this);
+		}, 3000);
+		d3.select(me).text("Really delete?").on("click", function(){
+			removecalendar(d, me);
+			wait(this);
+			window.clearTimeout(timeout);
+		});
+	}
+
+	function removecalendar(d, me) {
+		if (active >= calendars.length-1) active = calendars.length - 2;
+		if (active < 0) active = 0;
+		draw.deletecalendar(d, calendars, active);
+		displayCourses(true);
+	}
+
+	function scrollleft() {
+		active = active - 1;
+		if (active < 0) active = 0;
+		draw.transitionViewTo(active, calendars);
+		displayCourses(true);
+	}
+
+	function scrollright() {
+		active = active + 1;
+		if (active >= calendars.length) active = calendars.length - 1;
+		draw.transitionViewTo(active, calendars);
+		displayCourses(true);
+	}
 
 	function init(testing) {
+		draw.outsidefuncs.push(displayCourses);
 		d3.json("src/courses.flat.json", function(e,d){
 			coursedata = d;
 			// for testing.
@@ -419,10 +472,16 @@ function(d3, _, util, draw){
 			wordindex = d[0];
 			unitindex = d[1];
 		});
-		draw.initcalendar(0, calendars);
+		draw.initcalendar(calendars);
+		draw.drawcalendar(calendars[0]);
 		d3.select("#searchbox").on("keyup", searchbox);
-		d3.select("#showconflicts").on("click", function(){displayCourses();});
+		d3.select("#showconflicts").on("click", function(){displayCourses(true);});
 		d3.select("#export").on("click", function(){exportCourseNumbers();});
+		d3.select("#clone").on("click", function(){clonecalendar();});
+		d3.select("#delete").on("click", function(){askremove(calendars[active], this)});
+		d3.select("#prev").on("click", function(){scrollleft();});
+		d3.select("#next").on("click", function(){scrollright();});
+		d3.select("#new").on("click", function(){newcalendar();});
 	}
 
 	return {startjeeves: init};

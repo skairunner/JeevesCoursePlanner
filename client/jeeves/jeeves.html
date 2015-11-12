@@ -11,24 +11,43 @@
 	<div>
 		Total <span id="credits">0</span> credits
 	</div>
-	<div id="search" class="bigframe">
-		<input type="checkbox" id="showconflicts"><span class="optiondesc">Show classes that conflict</span>
-		<input type="text" id="searchbox">
-		<div id="filters"></div>
-		<div id="searchresults">
-			<span id="nothingmsg">Enter something to get started!</span>
+	<div id="container">
+		<div id="search" class="bigframe">
+			<input type="checkbox" id="showconflicts"><span class="optiondesc">Show classes that conflict</span>
+			<input type="text" id="searchbox">
+			<div id="filters"></div>
+			<div id="searchresults">
+				<span id="nothingmsg">Enter something to get started!</span>
+			</div>
+		</div>
+		<div id="buttonbar">
+			<div id="leftbuttons" class="buttongroup">
+				<button id="prev">&lt;</button>
+				<button id="new">New</button>
+			</div>
+			<p id="calendartitle">
+					Calendar <span id="calendarname">0</span>
+			</p>
+			<div id='rightbuttons' class="buttongroup">
+				<button id="delete">Delete</button>
+				<button id="clone">Clone</button>
+				<button id="next">&gt;</button>
+			</div>
+			<div style="clear:both;"></div>
+		</div>
+		<div id="calendardiv" class="bigframe">
+			<svg id="calendarsvg" height="600" 
+			width="600" viewBox="0 0 600 600"></svg>
 		</div>
 	</div>
-	<div id="calendardiv" class="bigframe">
-		<svg id="calendarsvg" height="600" 
-		width="600" viewBox="0 0 600 600"></svg>
-	</div>
-	<div>
-		<button type="button" id="export">Get list of course numbers</button>
-		<table id="coursenums"></div>
-	</div>
-	<div style="display:inline-block">
-		<span class="title">Jeeves Course Planner</span>
-		<span class="version">version 0.2</span>
+	<div id="footer">
+		<div>
+			<button type="button" id="export">Get list of course numbers</button>
+			<table id="coursenums"></div>
+		</div>
+		<div style="display:inline-block">
+			<span class="title">Jeeves Course Planner</span>
+			<span class="version">version 0.25</span>
+		</div>	
 	</div>
 </body>

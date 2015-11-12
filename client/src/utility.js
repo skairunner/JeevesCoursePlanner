@@ -87,8 +87,6 @@ define([], function(){
 		return t1[1] <= t2[1];
 	}
 
-
-
 	/**
 	 * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
 	 * 

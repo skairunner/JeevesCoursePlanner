@@ -5,6 +5,8 @@ define(['d3', 'utility'], function(d3, util){
 	dayscale.rangeBands([0, 500], 0, 0.01);
 	var tickformat = d3.time.format("%H:%M");
 
+	// ugly hack to be able to call the update display function
+	var outsidefuncs = [];
 
 	var calendarwidth = 600;
 	var transitiontime = 1000;
@@ -12,14 +14,23 @@ define(['d3', 'utility'], function(d3, util){
 	function TT(){return transitiontime;}
 	function TTy(){return transitiontype;}
 
+	function reassignIndexes(calendars) {
+		 _.each(calendars, function(d, i){
+			oldsel = d.selector;
+			d.selector = "#cal" + i;
+			d.axisorigin = "translate(" + (50+i*calendarwidth) + ",40)";
+			movecalendar(d, oldsel);
+			return d;
+		});
+	}
 
-	function initcalendar(index, calendars) {
+	function initcalendar(calendars) {
 		var obj = {};
-		obj.index = index;
-		obj.selector = "#cal" + index;
-		obj.axisorigin = "translate(" + (50+index*calendarwidth) + ",40)";
+		obj.selector = "#cal" + calendars.length;
+		obj.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",40)";
 		obj.courses = [];
 		obj.colors = [];
+		obj.master = calendars;
 		obj.timescale = d3.time.scale().domain([new Date(2015, 10, 14, 8, 0)
 			, new Date(2015, 10, 14, 18, 0)]);
 		obj.timescale.range([0, 500]);
@@ -29,27 +40,58 @@ define(['d3', 'utility'], function(d3, util){
 		.orient("left");
 		obj.dayaxis = d3.svg.axis().scale(dayscale).orient("top");
 		var svg = d3.select("#calendarsvg").append("g")
-					.attr("id", "cal" + index).attr("class", "calendar")
-					.attr("transform", obj.axisorigin);
+					.attr("id", obj.selector.slice(1,obj.selector.length)).attr("class", "calendar")
+					.attr("transform", obj.axisorigin + " scale(0, 0)");
+		svg.transition().duration(TT()).ease(TTy())
+			.attr("transform", obj.axisorigin + " scale(1, 1)");
 		svg.append("g").attr("class", "verticallines");
 	    svg.append("g").attr("class", "coursearea");
 	    svg.append("g").attr("class", "timeaxis axis")
 		   .call(obj.timeaxis);
 	    svg.append("g").attr("class", "dayaxis axis")
 		   .call(obj.dayaxis);
-
 	   calendars.push(obj);
+	   console.log(calendars);
+	}
+
+	function movecalendar(calendar, oldsel) {
+		d3.select(oldsel)
+			.attr("id", calendar.selector.slice(1,calendar.selector.length))
+			.transition().duration(TT()).ease(TTy())
+			.attr("transform", calendar.axisorigin);
+	}
+
+	function deletecalendar(calendar, calendars, active) {
+		var i =calendars.indexOf(calendar);
+		calendars.splice(i, 1);
+		drawerase(calendar);
+		if (calendars.length != 0) transitionViewTo(active, calendars);
+		window.setTimeout(function(){
+			reassignIndexes(calendars);
+			if (calendars.length == 0){
+				initcalendar(calendars);
+				updateCreditsTotal(calendars[0]);
+			}
+		}, TT());
+	}
+
+	// smoothly delete a calendar
+	function drawerase(calendar) {
+		var svg = d3.select(calendar.selector);
+		svg.selectAll("*").transition()
+		   .duration(TT())
+		   .ease('linear')
+		   .attr("transform", "scale(0, 0)");
+	    window.setTimeout(function(){svg.remove();}, TT());
 	}
 
 	function drawcalendar(calendar) {
-		var index      = calendar.index;
 		var svg        = d3.select(calendar.selector);
 		var axisorigin = calendar.axisorigin;
 		var courses    = calendar.courses;
 		var colors     = calendar.colors;
 		var dayaxis    = calendar.dayaxis;
 		var timeaxis   = calendar.timeaxis;
-
 		updateCreditsTotal(calendar);
 
 		if (courses.length == 0){ 
@@ -70,6 +112,8 @@ define(['d3', 'utility'], function(d3, util){
 			// If doing mintime, round down. If doing maxtime, round up.
 			var mintime = Math.floor(min/60);
 			var maxtime = Math.ceil(max/60);
+			if (mintime > 8) mintime = 9;
+			if (maxtime < 17) maxtime = 17;
 			changeTimeAxis(calendar, new Date(2015, 10, 14, mintime, 0)
 				, new Date(2015, 10, 14, maxtime, 0));
 		}	
@@ -87,10 +131,17 @@ define(['d3', 'utility'], function(d3, util){
 	  	});
 	  	var exit = allcourses.exit();
 	  	exit.selectAll("*")
-	  			.transition().duration(TT()).ease(TTy())
-	  			.style("opacity", "0");
+  			.transition().duration(TT()).ease(TTy())
+  			.style("opacity", "0");
 	  			
 	  	window.setTimeout(function(){exit.remove();}, TT());
+	}
+
+	function transitionViewTo(index, calendars) {
+		d3.select("#calendarsvg").transition().duration(1000)
+		  .attr("viewBox", (index * 600) + " 0 600 600");
+	    d3.select("#calendarname").text(index);
+	    updateCreditsTotal(calendars[index]);
 	}
 
 	function changeTimeAxis(calendar, timestart, timeend) {
@@ -114,6 +165,7 @@ define(['d3', 'utility'], function(d3, util){
 	function removeCourseBlock(d, i, me, obj) {
 		obj.courses = _.without(obj.courses, d);
 		drawcalendar(obj);
+		outsidefuncs[0](true);
 	}
 
 	function DateFromTimeArr(t) {
@@ -121,7 +173,7 @@ define(['d3', 'utility'], function(d3, util){
 			console.warn("The course " + d.coursedata.name + " does not have time info.");
 			return undefined;
 		}
-		return new Date(2015, 10, 14, t[0], t[1])
+		return new Date(2015, 10, 14, t[0], t[1]);
 	}
 
 	var TEXTTRUNLEN = 15;
@@ -239,7 +291,10 @@ define(['d3', 'utility'], function(d3, util){
 
 	return {
 		drawcalendar: drawcalendar,
+		deletecalendar: deletecalendar,
 		initcalendar: initcalendar,
+		outsidefuncs: outsidefuncs,
+		transitionViewTo: transitionViewTo,
 		updateCreditsTotal: updateCreditsTotal
 	}
 });
