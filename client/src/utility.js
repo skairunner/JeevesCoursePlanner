@@ -117,6 +117,13 @@ define([], function(){
 		return size
 	}
 
+	function tweenText(d) {
+		var i = d3.interpolate(this.textContent, d);
+		return function(t) {
+			this.textContent = Math.round(i(t));
+		}
+	}
+
 	return {
 		DayFromInt: DayFromInt,
 		cmptime: cmptime,
@@ -127,6 +134,7 @@ define([], function(){
 		smartPickColor: smartPickColor,
 		strFromSectionTime: strFromSectionTime,
 		timestrFromTime: timestrFromTime,
-		toMinutes: toMinutes
+		toMinutes: toMinutes,
+		tweenText: tweenText
 	}
 })

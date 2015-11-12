@@ -50,6 +50,8 @@ define(['d3', 'utility'], function(d3, util){
 		var dayaxis    = calendar.dayaxis;
 		var timeaxis   = calendar.timeaxis;
 
+		updateCreditsTotal(calendar);
+
 		if (courses.length == 0){ 
 			// reset axis to original 8 to 6
 			changeTimeAxis(calendar, new Date(2015, 10, 14, 8, 0)
@@ -105,14 +107,13 @@ define(['d3', 'utility'], function(d3, util){
 			}
 			return memo + course.sectiondata.units
 		}, 0);
-		d3.select("#credits").text(credits);
+		d3.select("#credits").datum(credits).transition().duration(TT())
+		  .ease(TTy()).tween('text', util.tweenText);
 	}
 
 	function removeCourseBlock(d, i, me, obj) {
 		obj.courses = _.without(obj.courses, d);
-		updateCreditsTotal(obj);
 		drawcalendar(obj);
-		//displayCourses(); // to update collision and stuff
 	}
 
 	function DateFromTimeArr(t) {
