@@ -135,7 +135,6 @@ define(['d3', 'utility'], function(d3, util){
 	  		var removed = exit.remove();
 	  		if (removed.node() != null) {
 	  			svg.select(".removed").append(function(){
-		  		console.log(removed.node());
 		  		return removed.node();
 		  		});
 		  		exit.selectAll("*")

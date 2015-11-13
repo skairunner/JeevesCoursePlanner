@@ -364,28 +364,29 @@ function(d3, _, util, draw){
 		displayCourses(true);
 	}
 
-	function askremovecallback(me) {
-		d3.select(me).text("Delete").on("click", function(){askremove(calendars[active], this);});
+	function resetremovebutton(target) {
+		target.text("Delete").on("click", function(){askremove(calendars[active], this);});
 	}
 
-	function wait(me) {
+	function wait(target) {
 		window.setTimeout(function(){
-		d3.select(me).text("Delete").on("click", function(){askremovecallback(this);});
+		resetremovebutton(target);
 		}, 500);
 	}
 
-	function askremove(d, me) {
+	function askremove(d) {
+		var target = d3.select("#delete");
 		var timeout = window.setTimeout(function(){
-			askremovecallback(this);
+			resetremovebutton(target);
 		}, 3000);
-		d3.select(me).text("Really delete?").on("click", function(){
-			removecalendar(d, me);
-			wait(this);
+		target.text("Really delete?").on("click", function(){
+			removecalendar(d, target);
+			wait(target);
 			window.clearTimeout(timeout);
 		});
 	}
 
-	function removecalendar(d, me) {
+	function removecalendar(d, target) {
 		if (active >= calendars.length-1) active = calendars.length - 2;
 		if (active < 0) active = 0;
 		draw.deletecalendar(d, calendars, active);
@@ -456,9 +457,8 @@ function(d3, _, util, draw){
 				];
 				draw.updateCreditsTotal(calendars[0]);
 				draw.drawcalendar(calendars[0]);
-				
+				setFilterTo("lehman");
 			}
-			setFilterTo("lehman");
 		});
 		d3.json("src/courses.index.json", function(e,d){
 			wordindex = d[0];
@@ -470,7 +470,7 @@ function(d3, _, util, draw){
 		d3.select("#showconflicts").on("click", function(){displayCourses(true);});
 		d3.select("#export").on("click", function(){exportCourseNumbers();});
 		d3.select("#clone").on("click", function(){clonecalendar();});
-		d3.select("#delete").on("click", function(){askremove(calendars[active], this)});
+		d3.select("#delete").on("click", function(){askremove(calendars[active])});
 		d3.select("#prev").on("click", function(){scrollleft();});
 		d3.select("#next").on("click", function(){scrollright();});
 		d3.select("#new").on("click", function(){newcalendar();});
