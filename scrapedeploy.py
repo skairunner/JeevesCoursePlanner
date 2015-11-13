@@ -14,9 +14,15 @@ try:
 except:
     print "Create a json file deploydir with the content [<deploy directory>]"
 
-outdir = os.path.abspath(path)
 
-call(["sudo", "python", "scraper/albertscraper.py"])
+scrape = True
+if len(sys.argv) > 1:
+    if sys.argv[1] == "reindex":
+        scrape = False
+
+outdir = os.path.abspath(path)
+if scrape:
+    call(["sudo", "python", "scraper/albertscraper.py"])
 call(["python", "scraper/courseprocesser.py", "min"])
 call(["python", "scraper/courseflattener.py", "min"])
 call(["python", "scraper/courseindexer.py", "min"])

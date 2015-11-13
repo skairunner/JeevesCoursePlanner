@@ -87,6 +87,8 @@ for k in index:
     index[k] = list(index[k])
 for i in unitindex:
     unitindex[i] = list(unitindex[i])
+# Seems we do not need th index any more.
+index = []
 
 try:
     arg = sys.argv[1]

@@ -5,7 +5,6 @@ function(d3, _, util, draw){
 	var active    = 0;
 
 	var coursedata = null;
-	var wordindex = null;
 	var unitindex = null;
 
 	var filters = [];
@@ -244,24 +243,16 @@ function(d3, _, util, draw){
 		} else if (d.indexOf("startsafter:") == 0) {
 			d = d.substring(12,20);
 		}
-
 		else {
 			// Find all the things that have d, and display.
 			d = sanitize(d);
 			results = [];
 			// First check if it is in the index
-			if ((!noindex) && (d in wordindex)) {
-				for (var course in wordindex[d]) {
-					course = wordindex[d][course];
-					results.push(course);
-				}
-			} else {
 				// if not in index, need to do it the hard way.
-				for (var course in coursedata) {			
-					course = coursedata[course];
-					if (course.searchable.indexOf(d) >= 0) {
-						results.push(course.name);
-					}
+			for (var course in coursedata) {			
+				course = coursedata[course];
+				if (course.searchable.indexOf(d) >= 0) {
+					results.push(course.name);
 				}
 			}
 		}
@@ -303,7 +294,7 @@ function(d3, _, util, draw){
 	}
 
 	function searchbox(){
-		if(coursedata && wordindex) {
+		if(coursedata) {
 			activefilter = this.value;
 			clearTimeout(searchboxTimeout);	
 			if (event.keyCode == 13) {// 'enter' 	
@@ -461,7 +452,6 @@ function(d3, _, util, draw){
 			}
 		});
 		d3.json("src/courses.index.json", function(e,d){
-			wordindex = d[0];
 			unitindex = d[1];
 		});
 		draw.initcalendar(calendars);
