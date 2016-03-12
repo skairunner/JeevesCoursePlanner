@@ -32,11 +32,6 @@ function(d3, _, util, draw){
 	// the components that need to be selected still.
 	// sectionsSelected should a list of the actual components.
 	function satisfiedCourseRequirements(courseinfo, sectionsSelected) {
-		try {
-			courseinfo.requiredcomponents;
-		} catch (error) {
-			console.log('.');			
-		}
 		var reqs = courseinfo.requiredcomponents;
 		var components = _.map(sectionsSelected, function(component){
 			if (component.coursedata.name == courseinfo.name) {
@@ -139,7 +134,6 @@ function(d3, _, util, draw){
 		} else {
 			intersection = [];
 		}
-		console.log(intersection);
 
 		var finalcoursecodes = _.map(intersection, function(result){
 			var code = result[0]; // result[1] is priority
@@ -389,7 +383,8 @@ function(d3, _, util, draw){
 
 	function newcalendar() {
 		draw.initcalendar(calendars);
-		util.transitionViewTo(calendars.length-1, calendars);
+		draw.transitionViewTo(calendars.length-1, calendars);
+		active = calendars.length - 1;
 		displaySearchResults(true);
 	}
 

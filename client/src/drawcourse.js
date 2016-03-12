@@ -177,7 +177,7 @@ define(['d3', 'utility'], function(d3, util){
 		outsidefuncs[0](true);
 	}
 
-	function DateFromTimeArr(t) {
+	function DateFromTimeArr(t, d) {
 		if (t == undefined) {
 			console.warn("The course " + d.coursedata.name + " does not have time info.");
 			return undefined;
@@ -199,8 +199,8 @@ define(['d3', 'utility'], function(d3, util){
 		var days = _.map(cdata.sectiondata.days, function(x){
 			return util.DayFromInt[x];});
 		// get times for scale stuff
-		var starttime = DateFromTimeArr(cdata.sectiondata.starttime);
-		var endtime = DateFromTimeArr(cdata.sectiondata.endtime);
+		var starttime = DateFromTimeArr(cdata.sectiondata.starttime, cdata);
+		var endtime = DateFromTimeArr(cdata.sectiondata.endtime, cdata);
 		if (starttime==undefined || endtime==undefined) {
 			return;
 		}
