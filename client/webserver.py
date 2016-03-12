@@ -19,14 +19,9 @@ class Root(object):
 
     @cherrypy.expose
     def index(self):
-        return "The index of the root object"
-
-    @cherrypy.expose
-    def jeeves(self):
         ip = cherrypy.request.headers["Remote-Addr"]
         logger.info("%s\tAccess to Jeeves" % ip)
         return serve_file(os.path.abspath("jeeves/jeeves.html"), "text/html")
-
 
 if __name__ =='__main__':
     with open("webserver.conf") as f:

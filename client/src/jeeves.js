@@ -19,8 +19,7 @@ function(d3, _, util, draw){
 	}
 
 	*/
-	var activefilter = ""; // the filter buffer. if press enter, move it to @filters.
-	var activefilterResults = [];
+	var activefilter = ["", []]; // the filter buffer. if press enter, move it to @filters.
 	var buffer = "";
 	var searchboxTimeout = null;
 	
@@ -33,6 +32,11 @@ function(d3, _, util, draw){
 	// the components that need to be selected still.
 	// sectionsSelected should a list of the actual components.
 	function satisfiedCourseRequirements(courseinfo, sectionsSelected) {
+		try {
+			courseinfo.requiredcomponents;
+		} catch (error) {
+			console.log('.');			
+		}
 		var reqs = courseinfo.requiredcomponents;
 		var components = _.map(sectionsSelected, function(component){
 			if (component.coursedata.name == courseinfo.name) {
@@ -76,28 +80,66 @@ function(d3, _, util, draw){
 		return false
 	}
 
+	function max(a, b) {
+		if (a > b) return a;
+		return b;
+	}
+
+	function filterintersect(f1, f2) {
+	    var ret = [];
+	    var f1Len = f1.length;
+	    var f2Len = f2.length;
+	    for (var i = 0; i < f1Len; i++) {
+	        for (var z = 0; z < f2Len; z++) {
+	            if (f1[i][0] == f2[z][0]) {
+	            	var result = [f1[i][0], f1[i][1]];
+	            	result[1] = max(f1[i][1], f2[z][1]);
+	                ret.push(result);
+	                break;
+	            }
+	        }
+	    }
+	    return ret;
+	}
+
 	// Combines the various filters and displays the results in the search area.
-	function displayCourses(includeActive) {
+	function displaySearchResults(includeActive) {
+		// filters looks like [[filter, [results]], [filter2, results2]]
+		var results = _.map(filters, function(filter){
+				return filter[1];
+		});
+		// now it looks like [[[c1],[c2],[c3]]], [[c5],[c6],[c7]]]]
+
 		if (includeActive) {
-			var results = filters.concat([[activefilter, activefilterResults]]);
-		} else {
-			var results = filters.concat();
+			results.push(activefilter[1]);
 		}
+
+		// turns empty filters into null
 		results = _.map(results, function(r) {
+			if (r == null) return null;
 			if (r[1].length == 0) return null;
-			return r[1];
+			return r;
 		});
 		results = _.compact(results); // remove empty filters
-		// get all non-duplicates
-		var coursecodes = _.uniq(results);
-		// next, make sure every filter is satisfied.
-		var filteredcoursecodes = _.intersection.apply(_, results);
-		// single line of code that finds intersection of all course arrays! :D
+		// sort all.
+		for (var i = 0; i < results.length; i++) {
+			results[i].sort(function(d1, d2){ return d1[1] - d2[1]; });
+		}
+		var intersection;
+		if (results.length >= 2) {
+			intersection = filterintersect(results[0], results[1]);
+			for (var i = 2; i < results.length; i++) {
+				intersection = filterintersect(insersection, results[i])
+			}
+		} else if (results.length == 1) {
+			intersection = results[0];
+		} else {
+			intersection = [];
+		}
+		console.log(intersection);
 
-		// finalcoursecodes: each element is a [code, sections].
-		// sections is the list of sections ids to actually display
-		// If the sections is empty, return null.
-		var finalcoursecodes = _.map(filteredcoursecodes, function(code){
+		var finalcoursecodes = _.map(intersection, function(result){
+			var code = result[0]; // result[1] is priority
 			// If already taking course:
 			// 1. if all requirements filled, return null
 			var courseinfo = coursedata[code];
@@ -230,6 +272,7 @@ function(d3, _, util, draw){
 	}
 
 	// Gets all courses that satisfy filter "d"
+	// d is a string.
 	function search(d, noindex) {
 		var results = []
 		// check for special keywords
@@ -238,23 +281,45 @@ function(d3, _, util, draw){
 			// search for units only.
 			for (var course in unitindex[+d]) {
 				course = unitindex[+d][course]
-				results.push(course);
+				results.push([course, 100]);
 			}
 		} else if (d.indexOf("startsafter:") == 0) {
 			d = d.substring(12,20);
+			results.push([course, 100]);
 		}
 		else {
 			// Find all the things that have d, and display.
 			d = sanitize(d);
 			results = [];
-			// First check if it is in the index
-				// if not in index, need to do it the hard way.
+			// if not in index, need to do it the hard way.
 			for (var course in coursedata) {			
 				course = coursedata[course];
-				if (course.searchable.indexOf(d) >= 0) {
-					results.push(course.name);
+				var i = course.searchable.indexOf(d);
+				if (i >= 0) {
+					var priority = 200 - i;
+					if (priority < 0) {
+						priority = 0;
+					}
+					results.push([course.name, priority]);
 				}
 			}
+
+			// // Sort results by relevance
+			// results.sort(function(a, b){
+			// 	var aindex = coursedata[a].title.indexOf(d);
+			// 	var bindex = coursedata[b].title.indexOf(d);
+			// 	if (aindex == -1 && bindex == -1) {
+			// 		return 0;
+			// 	}
+			// 	if (aindex == -1 && bindex != -1) {
+			// 		return 1;
+			// 	}
+			// 	if (aindex != -1 && bindex != -1) {
+			// 		return 0;
+			// 	}
+			// 	// aindex != -1, bindex == -1
+			// 	return -1;
+			// });
 		}
 		return results
 	}
@@ -266,20 +331,20 @@ function(d3, _, util, draw){
 		  .datum(filter)
 		  .classed("filter", true)
 		  .html("<span class=\"x\">&#10005;</span>" + filter).on("click", removefilter);
-		displayCourses();
+		displaySearchResults();
 	  	decideNothingMessage(d3.select("#searchresults"));
 	}
 
 	function setFilter(box) {
-		filters.push([activefilter,activefilterResults]);
-
-		activefilterResults = [];
+		filters.push(activefilter);
 		box.value = "";
 		d3.select("#filters").append("span")
-		  .datum(activefilter)
+		  .datum(activefilter[0])
 		  .classed("filter", true)
-		  .html("<span class=\"x\">&#10005;</span>" + activefilter).on("click", removefilter);
-	  	activefilter = "";
+		  .html("<span class=\"x\">&#10005;</span>" + activefilter[0]).on("click", removefilter);
+
+		activefilter[1] = [];
+		activefilter[0] = "";
 
 	  	decideNothingMessage(d3.select("#searchresults"));
 	}
@@ -290,21 +355,21 @@ function(d3, _, util, draw){
 		});
 		filters.splice(index, 1);
 		d3.select(this).remove();
-		displayCourses(true);
+		displaySearchResults(true);
 	}
 
 	function searchbox(){
 		if(coursedata) {
-			activefilter = this.value;
+			activefilter[0] = this.value;
 			clearTimeout(searchboxTimeout);	
 			if (event.keyCode == 13) {// 'enter' 	
-				activefilterResults = search(activefilter);
+				activefilter[1] = search(activefilter[0]);
 				setFilter(this); // move from activefilter to filterlist
-				displayCourses(false);
+				displaySearchResults(false);
 			} else {
 				searchboxTimeout = window.setTimeout(function(){
-					activefilterResults = search(activefilter);
-					displayCourses(true);
+					activefilter[1] = search(activefilter[0]);
+					displaySearchResults(true);
 				}, 100);
 			}
 		}
@@ -317,7 +382,7 @@ function(d3, _, util, draw){
 			"sectiondata" : sectiondata
 		};
 		calendars[active].courses.push(courseprofile);
-		displayCourses(true); // because need to update conflicting stuff
+		displaySearchResults(true); // because need to update conflicting stuff
 		draw.drawcalendar(calendars[active]);
 	}	
 
@@ -340,7 +405,7 @@ function(d3, _, util, draw){
 	function newcalendar() {
 		draw.initcalendar(calendars);
 		util.transitionViewTo(calendars.length-1, calendars);
-		displayCourses(true);
+		displaySearchResults(true);
 	}
 
 	function clonecalendar() {
@@ -352,7 +417,7 @@ function(d3, _, util, draw){
 		draw.drawcalendar(calendars[calendars.length-1]);
 		draw.transitionViewTo(calendars.length-1, calendars);
 		active = calendars.length - 1;
-		displayCourses(true);
+		displaySearchResults(true);
 	}
 
 	function resetremovebutton(target) {
@@ -381,25 +446,25 @@ function(d3, _, util, draw){
 		if (active >= calendars.length-1) active = calendars.length - 2;
 		if (active < 0) active = 0;
 		draw.deletecalendar(d, calendars, active);
-		displayCourses(true);
+		displaySearchResults(true);
 	}
 
 	function scrollleft() {
 		active = active - 1;
 		if (active < 0) active = 0;
 		draw.transitionViewTo(active, calendars);
-		displayCourses(true);
+		displaySearchResults(true);
 	}
 
 	function scrollright() {
 		active = active + 1;
 		if (active >= calendars.length) active = calendars.length - 1;
 		draw.transitionViewTo(active, calendars);
-		displayCourses(true);
+		displaySearchResults(true);
 	}
 
 	function init(testing) {
-		draw.outsidefuncs.push(displayCourses);
+		draw.outsidefuncs.push(displaySearchResults);
 		d3.json("src/courses.flat.json", function(e,d){
 			coursedata = d;
 			// for testing.
@@ -448,7 +513,7 @@ function(d3, _, util, draw){
 				];
 				draw.updateCreditsTotal(calendars[0]);
 				draw.drawcalendar(calendars[0]);
-				setFilterTo("lehman");
+				//setFilterTo("lehman");
 			}
 		});
 		d3.json("src/courses.index.json", function(e,d){
@@ -457,7 +522,7 @@ function(d3, _, util, draw){
 		draw.initcalendar(calendars);
 		draw.drawcalendar(calendars[0]);
 		d3.select("#searchbox").on("keyup", searchbox);
-		d3.select("#showconflicts").on("click", function(){displayCourses(true);});
+		d3.select("#showconflicts").on("click", function(){displaySearchResults(true);});
 		d3.select("#export").on("click", function(){exportCourseNumbers();});
 		d3.select("#clone").on("click", function(){clonecalendar();});
 		d3.select("#delete").on("click", function(){askremove(calendars[active])});
