@@ -116,8 +116,11 @@ function(d3, _, util, draw){
 
 		// turns empty filters into null
 		results = _.map(results, function(r) {
-			if (r == null) return null;
-			if (r[1].length == 0) return null;
+			if (r == null) {
+				return null;
+			} else if (r.length == 0) {
+				return null;
+			}
 			return r;
 		});
 		results = _.compact(results); // remove empty filters
@@ -326,8 +329,7 @@ function(d3, _, util, draw){
 		  .classed("filter", true)
 		  .html("<span class=\"x\">&#10005;</span>" + activefilter[0]).on("click", removefilter);
 
-		activefilter[1] = [];
-		activefilter[0] = "";
+		activefilter = ["", []];
 
 	  	decideNothingMessage(d3.select("#searchresults"));
 	}
