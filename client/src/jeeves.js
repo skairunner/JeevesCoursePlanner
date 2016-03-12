@@ -123,7 +123,7 @@ function(d3, _, util, draw){
 		results = _.compact(results); // remove empty filters
 		// sort all.
 		for (var i = 0; i < results.length; i++) {
-			results[i].sort(function(d1, d2){ return d1[1] - d2[1]; });
+			results[i].sort(function(d1, d2){ return - d1[1] + d2[1]; });
 		}
 		var intersection;
 		if (results.length >= 2) {
@@ -303,23 +303,6 @@ function(d3, _, util, draw){
 					results.push([course.name, priority]);
 				}
 			}
-
-			// // Sort results by relevance
-			// results.sort(function(a, b){
-			// 	var aindex = coursedata[a].title.indexOf(d);
-			// 	var bindex = coursedata[b].title.indexOf(d);
-			// 	if (aindex == -1 && bindex == -1) {
-			// 		return 0;
-			// 	}
-			// 	if (aindex == -1 && bindex != -1) {
-			// 		return 1;
-			// 	}
-			// 	if (aindex != -1 && bindex != -1) {
-			// 		return 0;
-			// 	}
-			// 	// aindex != -1, bindex == -1
-			// 	return -1;
-			// });
 		}
 		return results
 	}

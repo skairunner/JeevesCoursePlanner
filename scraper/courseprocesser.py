@@ -26,7 +26,7 @@ def addWordsToSet(line, s):
     for x in line:
         s.add(x)
 
-with open(DIRNAME + "out/courses.json") as f:
+with open(DIRNAME + "spring2016out/courses.json") as f:
 	data = json.load(f)
 
 pattern_name = re.compile(r"(\w+), (\w+)") # eg, Zhang, Zheng or Non, Arkara
@@ -171,7 +171,6 @@ for subject in data:
         # Unique strings
         s = set()
         s.add(course["desc"])
-        s.add(course["title"])
         for c in course["components"]:
             s.add(c["componentType"])
             s.add(c["notes"])
@@ -180,8 +179,12 @@ for subject in data:
                 s.add(c["name"])
             except:
                 pass # no name
-        course["searchable"] = " ".join(s).translate(Sanitizr())
-        course["searchable"] += course["name"] # because numbers
+
+        searchable = " ".join(s).translate(Sanitizr())
+        searchable = course["title"] + searchable
+        searchable = course["name"] + searchable
+        course["searchable"] = searchable
+
         del course["table"]
         del course["header"]
 
@@ -194,5 +197,5 @@ try:
         quit()
 except:
     pass
-with open(DIRNAME + "out/courses.processed.json", "w") as f:
+with open(DIRNAME + "spring2016out/courses.processed.json", "w") as f:
     json.dump(data, f, indent=2)

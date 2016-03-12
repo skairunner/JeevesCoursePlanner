@@ -23,7 +23,7 @@ import os
 """
 DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
 
-with open(DIRNAME + "out/courses.processed.json") as f:
+with open(DIRNAME + "spring2016out/courses.processed.json") as f:
     data = json.load(f)
 
 output = {}
@@ -42,5 +42,5 @@ try:
 except:
     pass
 
-with open(DIRNAME + "out/courses.flat.json", "w") as f:
+with open(DIRNAME + "spring2016out/courses.flat.json", "w") as f:
     json.dump(output, f, indent=2)
