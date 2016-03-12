@@ -22,6 +22,7 @@ each major, in out/.
 DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 def dumpJsonAndChmod(obj, fname):
+    fname = fname.replace("/", "-").replace("&", " ")
     with open(fname, "w") as f:
         json.dump(obj, f)
     subprocess.call(["chown", "skyrunner", DIRNAME + fname])
@@ -62,7 +63,7 @@ searchbutton.click()
 
 # We are now in the albert course search.
 checkbox = WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_SPRING"))
+        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_FALL"))
     ) # selects the semester
 checkbox.click()
 time.sleep(5)
