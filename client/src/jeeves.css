@@ -1,5 +1,6 @@
 .courseholder {
 	border: solid 1px black;
+	padding: 5px;
 }
 .section {
 	border: dotted 1px black;
@@ -23,7 +24,8 @@
 	padding-top: 2px;
 	padding-bottom: 2px;
 	border-radius: 25px;
-	background: #6CF;
+	background: #33C3F0;
+	color: #FFF;
 	display: inline-block;
 }
 
@@ -58,17 +60,8 @@
 	padding-right: 5px;
 }
 
-.bigframe {
-	float: left;
-	position: relative;
-}
-
 #search {
-	width: 250px;
-	height:600px;
 	z-index: 1;
-	margin-left: -250px;
-	overflow:hidden;
 }
 
 #searchresults {
@@ -120,7 +113,7 @@ svg {
 }
 
 text {
-	font-family: "Times New Roman", serif;
+	font-family: "Open Sans", sans-serif;
 }
 
 .mousepassthru {
@@ -152,21 +145,22 @@ text {
 	text-align: center;
 }
 
-#rightbuttons {
-	float: right;
-	text-align:center;
-	padding-left: 10px;
-}
-
-#leftbuttons {
-	float:left;
-	text-align:center;
-	padding-right: 20px;
-}
-
 #calendartitle {
 	display: inline;
 	margin-left: auto;
 	margin-right: auto;
 	width: 50%;
 }
+
+#titlerow {
+	float: right;
+}
+
+.button.button-warning,
+button.button-warning,
+input[type="submit"].button-warning,
+input[type="reset"].button-warning,
+input[type="button"].button-warning {
+  color: #FFF;
+  background-color: #eb5149;
+  border-color: #eb5149; }

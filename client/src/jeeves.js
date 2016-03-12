@@ -401,7 +401,9 @@ function(d3, _, util, draw){
 	}
 
 	function resetremovebutton(target) {
-		target.text("Delete").on("click", function(){askremove(calendars[active], this);});
+		target.text("Delete")
+		.on("click", function(){askremove(calendars[active], this);})
+		.classed("button-warning", false);
 	}
 
 	function wait(target) {
@@ -415,11 +417,11 @@ function(d3, _, util, draw){
 		var timeout = window.setTimeout(function(){
 			resetremovebutton(target);
 		}, 3000);
-		target.text("Really delete?").on("click", function(){
+		target.text("Delete??").on("click", function(){
 			removecalendar(d, target);
 			wait(target);
 			window.clearTimeout(timeout);
-		});
+		}).classed("button-warning", true);
 	}
 
 	function removecalendar(d, target) {

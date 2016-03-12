@@ -235,10 +235,10 @@ define(['d3', 'utility'], function(d3, util){
 							 util.strFromSectionTime(cdata.sectiondata),
 							 cdata.sectiondata.componentType];
 					var sizes = _.map(texts, function(text) {
-						return util.findTextWidth(text, "Times New Roman", dayscale.rangeBand())
+						return util.findTextWidth(text, "Open Sans", dayscale.rangeBand())
 					});
 					// b.c. the 1th text is usually very long
-					sizes[1] = util.findTextWidth(texts[1].substr(0,TEXTTRUNLEN), "Times New Roman", dayscale.rangeBand());
+					sizes[1] = util.findTextWidth(texts[1].substr(0,TEXTTRUNLEN), "Open Sans", dayscale.rangeBand());
 					return _.zip(texts, sizes);
 				});
 
