@@ -204,9 +204,18 @@ define(['d3', 'utility'], function(d3, util){
 		if (starttime==undefined || endtime==undefined) {
 			return;
 		}
-
+		// it's possible that the section is a letter or some other horrible thing
+		var parsed = parseInt(cdata.sectionindex);
+		if (parsed != parsed) {
+			parsed = String(parsed)
+			var temp = "";
+			for (var i = 0; i < parsed.length; i++) {
+				temp += String(parsed.charCodeAt(i));
+			}
+			parsed = parseInt(temp)
+		}
 		var color = util.smartPickColor(cdata.coursedata.name, 
-										cdata.sectionindex+1,
+										parsed+1,
 										colors);
 		// nifty scale usage
 		var startY = timescale(starttime);
