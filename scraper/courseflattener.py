@@ -25,27 +25,26 @@ DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
 
 with open(DIRNAME + "fall2016out/courses.processed.json") as f:
     data = json.load(f)
+with open(DIRNAME + "majorcodearray.json") as f:
+    majorcodes = json.load(f)
+output = {
+    "other": {}
+}    
+for major in majorcodes:
+    output[major] = {}
 
-ADoutput = {}
-SHUoutput = {}
-otheroutput = {}
-alloutput = {
-    "AD": ADoutput,
-    "SHU": SHUoutput,
-    "other": otheroutput
-}
 
 for major in data:
     for coursenumber in major:
         courseinfo = major[coursenumber]
         suffix = courseinfo["name"].split(" ")[0].split("-")[-1]
-        if suffix in ["AD", "SHU"]:
-            alloutput[suffix][courseinfo["name"]] = courseinfo
+        if suffix not in majorcodes:
+            output["other"][courseinfo["name"]] = courseinfo
         else:
-            otheroutput[courseinfo["name"]] = courseinfo
+            output[suffix][courseinfo["name"]] = courseinfo
 
-for key, val in alloutput.items():
-    with open(DIRNAME + "fall2016out/" + key + "_courses.flat.json", "w") as f:
+for key, val in output.items():
+    with open(DIRNAME + "fall2016out/permajor/" + key + "_courses.flat.json", "w") as f:
         json.dump(val, f, indent=2)
-    with open(DIRNAME + "fall2016out/" + key + "_courses.flat.min.json", "w") as f:
+    with open(DIRNAME + "fall2016out/permajor/min_" + key + "_courses.flat.json", "w") as f:
         json.dump(val, f)
