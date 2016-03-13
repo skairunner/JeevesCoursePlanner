@@ -16,7 +16,8 @@ or splitting the "header" field into course code (eg, INTM-SHU 191) and title
 Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
-DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
+DIRNAME   = os.path.dirname(os.path.abspath(__file__)) + "/"
+SOURCEDIR = "fall2016out" 
 
 # s is a set
 def addWordsToSet(line, s):
@@ -25,9 +26,6 @@ def addWordsToSet(line, s):
     line = line.split()
     for x in line:
         s.add(x)
-
-with open(DIRNAME + "spring2016out/courses.json") as f:
-	data = json.load(f)
 
 pattern_name = re.compile(r"(\w+), (\w+)") # eg, Zhang, Zheng or Non, Arkara
 pattern_time = re.compile(r"(\d+\.\d+ [AP]M) - (\d+\.\d+ [AP]M)")
@@ -58,10 +56,31 @@ def TimeFromStr(s):
             h = h + 12
     return [h, m]
 
+data = []
+for root, dirs, files in os.walk(DIRNAME + SOURCEDIR):
+    for file in files:
+        with open(root + "/" + file) as f:
+            data.append(json.load(f))
+
+
+def walk_dict(d, depth=0):
+    for k,v in sorted(d.items(),key=lambda x: x[0]):
+        if isinstance(v, dict):
+            print ("  ")*depth + ("%s" % k)
+            walk_dict(v,depth+1)
+        else:
+            print ("  ")*depth + "%s" % (k)
+
 for subject in data:
-    for sitecourseid in data[subject]:
-        course = data[subject][sitecourseid]
-        course["name"]  = course["table"].split(" | ")[0].split("\n")[1]
+    for sitecourseid in subject:
+        course = subject[sitecourseid]
+        if not course:
+            continue
+        try:
+            course["name"]  = course["table"].split(" | ")[0].split("\n")[1]
+        except BaseException as e:
+            walk_dict(course)
+            raise e
         course["title"] = " ".join(course["header"].split(" ")[2:])
         components = course["table"].split(course["name"])
         course["components"] = [] 
@@ -192,10 +211,10 @@ for subject in data:
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open(DIRNAME + "out/courses.processed.min.json", "w") as f:
+        with open(DIRNAME + SOURCEDIR + "/courses.processed.min.json", "w") as f:
             json.dump(data, f)
         quit()
 except:
     pass
-with open(DIRNAME + "spring2016out/courses.processed.json", "w") as f:
+with open(DIRNAME + SOURCEDIR + "/courses.processed.json", "w") as f:
     json.dump(data, f, indent=2)

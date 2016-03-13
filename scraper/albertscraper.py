@@ -3,6 +3,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 import selenium
 import getpass
 import time
@@ -141,9 +142,19 @@ for subject in selectables:
         button.click()
 
         tableid = 'ACE_NYU_CLS_DERIVED_TERM$' + ident
-        table = WebDriverWait(driver, timeout).until(
-                    EC.presence_of_element_located((By.ID, tableid))
-                ) # get the term data
+        try:
+            table = WebDriverWait(driver, timeout).until(
+                        EC.presence_of_element_located((By.ID, tableid))
+                    ) # get the term data
+        except TimeoutException as e:
+            print("Current: " + tableid)
+            print("Retrying...")
+            button = driver.find_element_by_id("NYU_CLS_DERIVED_TERM$" + ident
+                ).find_element_by_css_selector("img")
+            button.click()
+            table = WebDriverWait(driver, timeout).until(
+                        EC.presence_of_element_located((By.ID, tableid))
+                    ) # get the term data
         outdict[subject][ident]["table"] = table.text
 
     # intermediate saving

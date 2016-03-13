@@ -23,24 +23,29 @@ import os
 """
 DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
 
-with open(DIRNAME + "spring2016out/courses.processed.json") as f:
+with open(DIRNAME + "fall2016out/courses.processed.json") as f:
     data = json.load(f)
 
-output = {}
+ADoutput = {}
+SHUoutput = {}
+otheroutput = {}
+alloutput = {
+    "AD": ADoutput,
+    "SHU": SHUoutput,
+    "other": otheroutput
+}
 
 for major in data:
-    for course in data[major]:
-        courseinfo = data[major][course]
-        output[courseinfo["name"]] = courseinfo
+    for coursenumber in major:
+        courseinfo = major[coursenumber]
+        suffix = courseinfo["name"].split(" ")[0].split("-")[-1]
+        if suffix in ["AD", "SHU"]:
+            alloutput[suffix][courseinfo["name"]] = courseinfo
+        else:
+            otheroutput[courseinfo["name"]] = courseinfo
 
-try:
-    arg = sys.argv[1]
-    if arg == "min":
-        with open(DIRNAME + "out/courses.flat.min.json", "w") as f:
-            json.dump(output, f)
-            quit()
-except:
-    pass
-
-with open(DIRNAME + "spring2016out/courses.flat.json", "w") as f:
-    json.dump(output, f, indent=2)
+for key, val in alloutput.items():
+    with open(DIRNAME + "fall2016out/" + key + "_courses.flat.json", "w") as f:
+        json.dump(val, f, indent=2)
+    with open(DIRNAME + "fall2016out/" + key + "_courses.flat.min.json", "w") as f:
+        json.dump(val, f)
