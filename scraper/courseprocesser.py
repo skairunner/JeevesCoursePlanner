@@ -3,7 +3,7 @@ import json
 import re
 from dateutil.parser import parse as dateparse
 import sys
-from sanitizr import Sanitizr
+from sanitizr import sanitize
 import os
 
 """
@@ -17,12 +17,12 @@ Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
 DIRNAME   = os.path.dirname(os.path.abspath(__file__)) + "/"
-SOURCEDIR = "fall2016out" 
+SOURCEDIR = "fall2016out/raw" 
 
 # s is a set
 def addWordsToSet(line, s):
     line = unicode(line)
-    line = line.translate(Sanitizr())
+    line = sanitize(line)
     line = line.split()
     for x in line:
         s.add(x)
@@ -62,7 +62,6 @@ for root, dirs, files in os.walk(DIRNAME + SOURCEDIR):
         with open(root + "/" + file) as f:
             data.append(json.load(f))
 
-
 def walk_dict(d, depth=0):
     for k,v in sorted(d.items(),key=lambda x: x[0]):
         if isinstance(v, dict):
@@ -73,7 +72,10 @@ def walk_dict(d, depth=0):
 
 for subject in data:
     for sitecourseid in subject:
-        course = subject[sitecourseid]
+        try:
+            course = subject[sitecourseid]
+        except:
+            walk_dict(sitecourseid)
         if not course:
             continue
         try:
@@ -199,9 +201,9 @@ for subject in data:
             except:
                 pass # no name
 
-        searchable = " ".join(s).translate(Sanitizr())
-        searchable = course["title"] + searchable
-        searchable = course["name"] + searchable
+        searchable = sanitize(" ".join(s))
+        searchable = sanitize(course["title"]) + searchable
+        searchable = sanitize(course["name"]) + searchable
         course["searchable"] = searchable
 
         del course["table"]
@@ -216,5 +218,5 @@ try:
         quit()
 except:
     pass
-with open(DIRNAME + SOURCEDIR + "/courses.processed.json", "w") as f:
+with open(DIRNAME + SOURCEDIR + "/../courses.processed.json", "w") as f:
     json.dump(data, f, indent=2)

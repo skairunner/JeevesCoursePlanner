@@ -1,24 +1,71 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<title>Jeeves Course Planner</title>
+	<link rel="stylesheet" type="text/css" href="skeleton.css"/>
+	<link rel="stylesheet" type="text/css" href="jeeves.css"/>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
 </head>
+<script data-main="load" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.20/require.min.js"></script>
+<script>
+	  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
-<script src="underscore.js"></script>
-<script>window.d3 || document.write('<script charset=\'utf-8\' src="src/d3.js">\x3C/script>')</script> <!-- fallback -->
-<script src="src/jeeves.js"></script>
-<link rel="stylesheet" type="text/css" href="src/jeeves.css">
+	  ga('create', 'UA-58042106-3', 'auto');
+	  ga('send', 'pageview');
+</script>
 
 <body>
-	<div id="search" class="bigframe">
-		<input type="checkbox" id="showconflicts"><span class="optiondesc">Show classes that conflict</span>
-		<input type="text" id="searchbox">
-		<div id="filters"></div>
-		<div id="searchresults">
-			<span id="nothingmsg">Enter something to get started!</span>
-		</div>
+	<div class="container" id="loading">
+		Loading classes...
 	</div>
-	<div id="calendardiv" class="bigframe">
-		<svg id="calendarsvg" height="600" width="600"></svg>
+	<div class="container" id="main" style="display:none">
+		<div id="titlerow" class="row">
+			<span class="title">Jeeves Course Planner</span>
+			<span class="version">version 0.5</span>
+		</div>	
+		<div class="row">
+			<div>
+			<h4 id="calendartitle">
+				Calendar <span id="calendarname">0</span>
+			</h4>
+			total <span id="credits">0</span> credits
+			</div>
+		</div>
+		<div class = "row">
+			<div id="search" class="four columns">
+				<input type="checkbox" id="showconflicts"><span class="optiondesc">Show classes that conflict</span>
+				<input type="text" id="searchbox">
+				<div id="filters"></div>
+				<div id="searchresults">
+					<span id="nothingmsg">Enter something to get started!</span>
+				</div>
+			</div>
+			<div class = "eight columns">
+				<div id="buttonbar">
+				<div id="leftbuttons" class="buttongroup">
+					<button id="prev">&lt;</button>
+					<button id="new">New</button>
+					<button id="delete">Delete</button>
+					<button id="clone">Clone</button>
+					<button id="next">&gt;</button>
+				</div>
+				<div style="clear:both;"></div>
+				</div>
+				<div id="calendardiv">
+					<svg id="calendarsvg" height="600" 
+					width="800" viewBox="0 0 800 600"></svg>
+				</div>
+			</div>
+			<div style="clear:both"></div>
+		</div>
+
+		<div id="footer" class="row">
+			<div>
+				<button type="button" class="button-primary" id="export">Get list of course numbers</button>
+				<table id="coursenums"></div>
+			</div>
+		</div>
 	</div>
 </body>

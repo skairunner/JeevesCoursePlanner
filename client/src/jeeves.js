@@ -1,10 +1,11 @@
-define(['d3', 'underscore', 'utility', 'drawcourse'], 
-function(d3, _, util, draw){
+define(['d3', 'underscore', 'utility', 'drawcourse', 'promise'], 
+function(d3, _, util, draw, promise){
+	Promise = promise.Promise;
 	///////
 	var calendars = []; // a list of all calendar datas.
 	var active    = 0;
 
-	var coursedata = null;
+	var coursedata = {};
 	var unitindex = null;
 
 	var filters = [];
@@ -127,7 +128,7 @@ function(d3, _, util, draw){
 		if (results.length >= 2) {
 			intersection = filterintersect(results[0], results[1]);
 			for (var i = 2; i < results.length; i++) {
-				intersection = filterintersect(insersection, results[i])
+				intersection = filterintersect(intersection, results[i])
 			}
 		} else if (results.length == 1) {
 			intersection = results[0];
@@ -315,16 +316,33 @@ function(d3, _, util, draw){
 	  	decideNothingMessage(d3.select("#searchresults"));
 	}
 
-	function setFilter(box) {
+	function setFilter() {
 		filters.push(activefilter);
-		box.value = "";
 		d3.select("#filters").append("span")
 		  .datum(activefilter[0])
 		  .classed("filter", true)
 		  .html("<span class=\"x\">&#10005;</span>" + activefilter[0]).on("click", removefilter);
 
 		activefilter = ["", []];
+		d3.select("#searchbox").property("value", activefilter[0]);
+	  	decideNothingMessage(d3.select("#searchresults"));
+	}
 
+	function setFilterIfSpaces() {
+		var strs = activefilter[0].split(" ");
+		if (strs.length > 1) {
+			var i = 0;
+			for (; i < strs.length - 1; i++) {
+				filters.push([strs[i], search(strs[i])]);
+				d3.select("#filters").append("span")
+				  .datum(activefilter[i])
+				  .classed("filter", true)
+				  .html("<span class=\"x\">&#10005;</span>" + strs[i]).on("click", removefilter);
+			}
+			activefilter = [strs[i], []];
+			d3.select("#searchbox").property("value", activefilter[0]);
+			activefilter[1] = search(activefilter[0]);
+		}
 	  	decideNothingMessage(d3.select("#searchresults"));
 	}
 
@@ -341,12 +359,14 @@ function(d3, _, util, draw){
 		if(coursedata) {
 			activefilter[0] = this.value;
 			clearTimeout(searchboxTimeout);	
-			if (event.keyCode == 13) {// 'enter' 	
+			if (event.keyCode == 13) {// 'enter'
+				setFilterIfSpaces(); // move from activefilter to filterlist
 				activefilter[1] = search(activefilter[0]);
-				setFilter(this); // move from activefilter to filterlist
+				setFilter();
 				displaySearchResults(false);
 			} else {
 				searchboxTimeout = window.setTimeout(function(){
+					setFilterIfSpaces();
 					activefilter[1] = search(activefilter[0]);
 					displaySearchResults(true);
 				}, 100);
@@ -445,72 +465,48 @@ function(d3, _, util, draw){
 		displaySearchResults(true);
 	}
 
+	function readJson(filename) {
+		return new Promise(function(fulfill, reject) {
+			d3.json("courses/" + filename, function(e, d){
+				if (e != null) {
+					reject(e);
+				}
+				_.extend(coursedata, d);
+				fulfill("filename");
+		})});
+	}
+
+	function promiseJson(filenames) {
+		return Promise.all(filenames.map(readJson));
+	}
+
 	function init(testing) {
 		draw.outsidefuncs.push(displaySearchResults);
-		d3.json("src/courses.flat.json", function(e,d){
-			coursedata = d;
-			// for testing.
-			if (testing) {
-				calendars[0].courses = [
-					{
-						"coursedata": coursedata["INTM-SHU 240"],
-						"sectionindex": 0,
-						"sectiondata": coursedata["INTM-SHU 240"].components[0]
-					},
-					{
-						"coursedata": coursedata["INTM-SHU 240"],
-						"sectionindex": 1,
-						"sectiondata": coursedata["INTM-SHU 240"].components[1]
-					},
-					{
-						"coursedata": coursedata["CHIN-SHU 201"],
-						"sectionindex": 1,
-						"sectiondata": coursedata["CHIN-SHU 201"].components[1]
-					},
-					{
-						"coursedata": coursedata["INTM-SHU 127"],
-						"sectionindex": 0,
-						"sectiondata": coursedata["INTM-SHU 127"].components[0]
-					},
-					{
-						"coursedata": coursedata["INTM-SHU 127"],
-						"sectionindex": 1,
-						"sectiondata": coursedata["INTM-SHU 127"].components[1]
-					},
-					{
-						"coursedata": coursedata["INTM-SHU 120"],
-						"sectionindex": 0,
-						"sectiondata": coursedata["INTM-SHU 120"].components[0]
-					},
-					{
-						"coursedata": coursedata["INTM-SHU 120"],
-						"sectionindex": 1,
-						"sectiondata": coursedata["INTM-SHU 120"].components[1]
-					},
-					{
-						"coursedata": coursedata["INTM-SHU 214"],
-						"sectionindex": 0,
-						"sectiondata": coursedata["INTM-SHU 214"].components[0]
-					}
-				];
-				draw.updateCreditsTotal(calendars[0]);
-				draw.drawcalendar(calendars[0]);
-				//setFilterTo("lehman");
+		// load all files with a Promise.
+		filenames = [];
+		schools = JSON.parse(window.localStorage.getItem("schools"));
+		if (schools.length == 0) {
+			filenames = ["min_SHU_courses.flat.json"];
+		} else {
+			for (var i in schools) {
+				var abbv = schools[i];
+				filenames.push("min_" + abbv + "_courses.flat.json");
 			}
+		}
+		promiseJson(filenames).then(function(results){
+			d3.select("#loading").remove();
+			d3.select("#main").style("display", null);
+			draw.initcalendar(calendars);
+			draw.drawcalendar(calendars[0]);
+			d3.select("#searchbox").on("keyup", searchbox);
+			d3.select("#showconflicts").on("click", function(){displaySearchResults(true);});
+			d3.select("#export").on("click", function(){exportCourseNumbers();});
+			d3.select("#clone").on("click", function(){clonecalendar();});
+			d3.select("#delete").on("click", function(){askremove(calendars[active])});
+			d3.select("#prev").on("click", function(){scrollleft();});
+			d3.select("#next").on("click", function(){scrollright();});
+			d3.select("#new").on("click", function(){newcalendar();});
 		});
-		d3.json("src/courses.index.json", function(e,d){
-			unitindex = d[1];
-		});
-		draw.initcalendar(calendars);
-		draw.drawcalendar(calendars[0]);
-		d3.select("#searchbox").on("keyup", searchbox);
-		d3.select("#showconflicts").on("click", function(){displaySearchResults(true);});
-		d3.select("#export").on("click", function(){exportCourseNumbers();});
-		d3.select("#clone").on("click", function(){clonecalendar();});
-		d3.select("#delete").on("click", function(){askremove(calendars[active])});
-		d3.select("#prev").on("click", function(){scrollleft();});
-		d3.select("#next").on("click", function(){scrollright();});
-		d3.select("#new").on("click", function(){newcalendar();});
 	}
 
 	return {startjeeves: init};

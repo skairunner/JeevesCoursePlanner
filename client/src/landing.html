@@ -1,0 +1,48 @@
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>Jeeves Course Planner</title>
+	<link rel="stylesheet" type="text/css" href="src/skeleton.css"/>
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+	<style>
+	.doublecolumn {
+		-webkit-column-count:2;
+		-moz-column-count:2;
+		column-count:2;
+	}
+	span {
+		font-size: 16px;
+		margin-left: 6px;
+	}
+	.underline {
+		text-decoration: underline;
+	}
+	.underline:hover {
+		color: grey;
+	}
+	</style>
+</head>
+<script src="src/landing.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
+<body>
+	<div id="main" class="container">
+		<div class="row">
+			<h2>Jeeves Course Planner</h2>
+			<h4>Use Jeeves to rapidly search for courses and plan your schedule with a calendar view</h5>
+			<h5>Select the schools you wish to choose courses from.</h4>
+		</div>
+		<div>
+			<div id="SHU-AD" class="doublecolumn">
+			</div>
+			<span class="underline">NYU New York: Click to expand</span>
+			<div class="doublecolumn" style="display:none;" id="listcontainer">
+				<div id="loading">
+					<br>
+					<p>
+						Loading...
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>

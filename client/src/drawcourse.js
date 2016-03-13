@@ -2,13 +2,13 @@ define(['d3', 'utility'], function(d3, util){
 
 	var dayscale = d3.scale.ordinal();
 	dayscale.domain(util.DayFromInt);
-	dayscale.rangeBands([0, 500], 0, 0.01);
+	dayscale.rangeBands([0, 700], 0, 0.01);
 	var tickformat = d3.time.format("%H:%M");
 
 	// ugly hack to be able to call the update display function
 	var outsidefuncs = [];
 
-	var calendarwidth = 600;
+	var calendarwidth = 800;
 	var transitiontime = 1000;
 	var transitiontype = "cubic-out";
 	function TT(){return transitiontime;}
@@ -148,7 +148,7 @@ define(['d3', 'utility'], function(d3, util){
 
 	function transitionViewTo(index, calendars) {
 		d3.select("#calendarsvg").transition().duration(1000)
-		  .attr("viewBox", (index * 600) + " 0 600 600");
+		  .attr("viewBox", (index * calendarwidth) + " 0 800 600");
 	    d3.select("#calendarname").text(index);
 	    updateCreditsTotal(calendars[index]);
 	}
