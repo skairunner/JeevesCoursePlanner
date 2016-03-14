@@ -467,7 +467,7 @@ function(d3, _, util, draw, promise){
 
 	function readJson(filename) {
 		return new Promise(function(fulfill, reject) {
-			d3.json("courses/" + filename, function(e, d){
+			d3.json("../courses/" + filename, function(e, d){
 				if (e != null) {
 					reject(e);
 				}
