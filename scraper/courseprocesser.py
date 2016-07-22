@@ -17,7 +17,8 @@ Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
 DIRNAME   = os.path.dirname(os.path.abspath(__file__)) + "/"
-SOURCEDIR = "fall2016out/raw" 
+SOURCEDIR = "fall2016out/raw"
+OUTPUTDIR = "fall2016out"
 
 # s is a set
 def addWordsToSet(line, s):
@@ -59,6 +60,8 @@ def TimeFromStr(s):
 data = []
 for root, dirs, files in os.walk(DIRNAME + SOURCEDIR):
     for file in files:
+        if file == "out-courses.json":
+            continue
         with open(root + "/" + file) as f:
             data.append(json.load(f))
 
@@ -70,12 +73,12 @@ def walk_dict(d, depth=0):
         else:
             print ("  ")*depth + "%s" % (k)
 
-for subject in data:
-    for sitecourseid in subject:
-        try:
-            course = subject[sitecourseid]
-        except:
-            walk_dict(sitecourseid)
+filecounter = 0
+for college in data:
+    filecounter += 1
+    for courseid in college:
+        course = college[courseid]
+
         if not course:
             continue
         try:
@@ -213,10 +216,10 @@ for subject in data:
 try:
     arg = sys.argv[1]
     if arg == "min":
-        with open(DIRNAME + SOURCEDIR + "/courses.processed.min.json", "w") as f:
+        with open(DIRNAME + OUTPUTDIR + "/courses.processed.min.json", "w") as f:
             json.dump(data, f)
         quit()
 except:
     pass
-with open(DIRNAME + SOURCEDIR + "/../courses.processed.json", "w") as f:
+with open(DIRNAME + OUTPUTDIR + "/../courses.processed.json", "w") as f:
     json.dump(data, f, indent=2)
