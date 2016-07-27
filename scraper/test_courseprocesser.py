@@ -5,7 +5,7 @@ import json
 
 class TestCourseProcessing(unittest.TestCase):
 	def test_Single(self):
-		course = codecs.open("testdata/BUSF-SHU 206.json", "r", "utf-8").read()
+		course = codecs.open("testdata/BUSF-SHU 206.testjson", "r", "utf-8").read()
 		course = json.loads(course)
 		processcourse(course)
 		self.assertEqual(course["name"], "BUSF-SHU 206")
