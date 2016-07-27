@@ -20,7 +20,7 @@ While the final result is put into courses.json, a json file is made for
 each major, in out/. 
 """
 
-DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
+DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/fall2016out/raw"
 
 def dumpJson(obj, fname):
     fname = fname.replace("/", "-").replace("&", " ")

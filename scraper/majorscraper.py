@@ -26,13 +26,6 @@ def dumpJsonAndChmod(obj, fname):
         json.dump(obj, f)
     subprocess.call(["chown", "skyrunner", DIRNAME + fname])
 
-# myid = "ki539"
-# print "ID is: " + myid
-# # mypass = getpass.getpass("Password: ")
-# mypass = None
-# with open(DIRNAME + "pass") as f:
-#     mypass = f.read()
-
 driver = webdriver.Firefox()
 driver.get("http://albert.nyu.edu/course-finder")
 driver.select = driver.find_element_by_css_selector # too wordy

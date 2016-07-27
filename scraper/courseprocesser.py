@@ -5,6 +5,8 @@ from dateutil.parser import parse as dateparse
 import sys
 from sanitizr import sanitize
 import os
+import bs4
+from bs4 import BeautifulSoup as BS
 
 """
 This file is to turn the raw data dump from albertscraper.py
@@ -57,169 +59,150 @@ def TimeFromStr(s):
             h = h + 12
     return [h, m]
 
-data = []
-for root, dirs, files in os.walk(DIRNAME + SOURCEDIR):
-    for file in files:
-        if file == "out-courses.json":
-            continue
-        with open(root + "/" + file) as f:
-            data.append(json.load(f))
-
-def walk_dict(d, depth=0):
-    for k,v in sorted(d.items(),key=lambda x: x[0]):
-        if isinstance(v, dict):
-            print ("  ")*depth + ("%s" % k)
-            walk_dict(v,depth+1)
-        else:
-            print ("  ")*depth + "%s" % (k)
-
-filecounter = 0
-for college in data:
-    filecounter += 1
-    for courseid in college:
-        course = college[courseid]
-
-        if not course:
-            continue
+# turn a list of tags, eg [tag, str, tag, tag, str, tag] into a single str
+def stringFromTags(tags):
+    out = []
+    for t in tags:
         try:
-            course["name"]  = course["table"].split(" | ")[0].split("\n")[1]
-        except BaseException as e:
-            walk_dict(course)
-            raise e
-        course["title"] = " ".join(course["header"].split(" ")[2:])
-        components = course["table"].split(course["name"])
-        course["components"] = [] 
-        for comp in components:
-            table = comp.split(" | ")
-            course["components"].append({})
-            component = course["components"][-1]
-            try:
-                if len(table) == 7:
-                    component["number"] = table[1]
-                    component["period"] = table[2]
-                    temp = table[3].split("\n")
-                    component["section"] = temp[0]
-                    component["status"] = temp[1]
-                    component["location"] = table[5].split("\n")[1]
-                    temp = table[6].split("\n")
-                    component["componentType"] = temp[0]
-                    component["details"] = temp[1]
-                    try:
-                        component["notes"] = temp[2]
-                    except:
-                        component["notes"] = "" # has no notes
-                elif len(table) == 8:
-                    component["units"] = int(table[1].split(" ")[0])
-                    component["number"] = table[2]
-                    component["period"] = table[3]
-                    temp = table[4].split("\n")
-                    component["section"] = temp[0]
-                    component["status"] = temp[1]
-                    component["location"] = table[6].split("\n")[1].split(": ")[1]
-                    temp = table[7].split("\n")
-                    component["componentType"] = temp[0]
-                    component["details"] = temp[1]
-                    try:
-                        component["notes"] = temp[2].split("Notes: ")[1]
-                    except:
-                        component["notes"] = ""
-            except ValueError:
-                pass
-            except IndexError as e:
-                print temp
-            except BaseException as e:
-                print table
-                print course["name"]
-                raise e
-            if "status" in component:
-                if "Open" in component["status"]:
-                    component["status"] = "Open"
-            if "section" in component:
-                component["section"] = component["section"].split(": ")[1]
-            if "componentType" in component:
-                component["componentType"] = component["componentType"].split(": ")[1]
-            if "number" in component:
-                component["number"] = component["number"].split("#: ")[1]
-            if "period" in component:
-                temp = component["period"].split(" ")[2:]
-                component["startdate"] = DateFromStr(temp[0])
-                component["enddate"]   = DateFromStr(temp[2])
-                del component["period"]
-            try:
-                if "details" in component:
-                    name = pattern_name.search(component["details"])
-                    try:
-                        time = pattern_time.search(component["details"]).group(0).split(" - ")
-                        component["starttime"] = TimeFromStr(time[0])
-                        component["endtime"] = TimeFromStr(time[1])
-                    except:
-                        pass
-                    days = []
-                    for x in ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]:
-                        if x in component["details"]:
-                            days.append(DayToNumber[x])
-                    component["days"] = days
-                    try:
-                        component["name"] = [name.group(1), name.group(2)]
-                    except:
-                        pass # no name specified
-            except AttributeError as e:
-                print e, component["details"];
-            if not len(component):
-                course["components"].pop()
-
-        course["desc"] = course["desc"].split("less description")[0]
-
-        # An array of component types
-        s = set()
-        for component in course["components"]:
-            s.add(component["componentType"])
-        course["requiredcomponents"] = list(s)
+            out.append(t.text)
+        except:
+            out.append(unicode(t))
+    return "".join(out)
 
 
-        """
-        # Unique words
-        myset = set()
-        addWordsToSet(course["desc"], myset)
-        addWordsToSet(course["title"], myset)
-        addWordsToSet(course["name"], myset)
-        for c in course["components"]:
-            addWordsToSet(c["componentType"], myset)
-            addWordsToSet(c["notes"], myset)
-            addWordsToSet(c["details"], myset)
-            try:
-                addWordsToSet(c["name"], myset)
-            except:
-                pass # no name
-        course["searchable"] = " ".join(myset)"""
-        # Unique strings
-        s = set()
-        s.add(course["desc"])
-        for c in course["components"]:
-            s.add(c["componentType"])
-            s.add(c["notes"])
-            s.add(c["details"])
-            try:
-                s.add(c["name"])
-            except:
-                pass # no name
 
-        searchable = sanitize(" ".join(s))
-        searchable = sanitize(course["title"]) + searchable
-        searchable = sanitize(course["name"]) + searchable
-        course["searchable"] = searchable
+def processcourse(course):
+    soup = BS(course["table"], "html5lib")
+    course["name"]  = re.search(r"[\w]+-[\w]+\s+[\w]+", course["header"]).group(0)
+    course["title"] = course["header"].split(course["name"] + " ")[1]
+    # A dirty hack to easily find the innermost <td>s
+    cmps = soup("td", style="background-color: white; font-family: arial; font-size: 12px;")
+    course["components"] = []
+    notes = []
+    components = course["components"]
+    for td in cmps:
+        components.append({})
+        component = components[-1]
 
-        del course["table"]
-        del course["header"]
+        lines = []
+        line = []
+        for tag in td:
+            if tag.name == "br":
+                lines.append(line)
+                line = []
+            else:
+                line.append(tag)
+        if len(line) > 0:
+            lines.append(line)
+
+        s = 0 # starting line #
+        # First line has course name, units, #, section
+        flattened = stringFromTags(lines[s])
+        if "Topic:" in flattened:
+            s += 1 # increase starting line because there's a Topic
+            component["topic"] = flattened.split("Topic:")[1]
+
+        flattened = stringFromTags(lines[s])
+        r = re.search(r"(\d+) units", flattened)
+        if r:
+            component["units"] = int(r.group(1))            
+        r = re.search(r"Class#: (\d+)", flattened)
+        if r:
+            component["number"] = int(r.group(1))
+        r = re.search(r"Section: (\w+)", flattened)
+        if r:
+            component["section"] = r.group(1)
+        # second line has nothing important.
+        # third line has location and component
+        flattened = stringFromTags(lines[s+2])
+        r = re.search(r"Location: (\w+)", flattened)
+        if r:
+            component["location"] = r.group(1)
+        r = re.search(r"Component: (\w+)", flattened)
+        if r:
+            component["componentType"] = r.group(1)
+        # Forth line has times and instructor.
+        # Fifth line might have times, or it might have notes.
+        # basically: figure out if the line is Notes or not, then figure out if
+        # it's a test date or a proper date.
+        for i in range(s+3, len(lines)):
+            flattened = stringFromTags(lines[i])
+            if "Notes:" in flattened:
+                component["notes"] = flattened.split("Notes:")[1].strip()
+                notes.append(component["notes"])
+            else:
+                # possibly a date.
+                r = re.findall(r"\d{2}\/\d{2}\/\d{4}", flattened)
+                if len(r) == 2:
+                    if r[0] == r[1]:
+                        continue # it's a test date.
+                    # otherwise add to class times.
+                    # date is 24 characters long.
+                    flattened = flattened[24:]
+                    # might have a name in it
+                    if "with" in flattened:
+                        component["instructor"] = flattened.split("with ")[-1].strip()
+                        index = flattened.index(" with")
+                        flattened = flattened[:index]
+                    # extract the times
+                    times = re.search(r"((\w{3},?)+) (\d{1,2})\.(\d{2}) (\w{2}) - (\d{1,2})\.(\d{2}) (\w{2})", flattened)
+                    if times:
+                        if "classtimes" not in component:
+                            component["classtimes"] = []
+                        startdays = times.group(1)
+                        startH = times.group(3); startH = int(startH)
+                        startM = times.group(4); startM = int(startM)
+                        startAP = times.group(5)
+                        endH = times.group(6); endH = int(endH)
+                        endM = times.group(7); endM = int(endM)
+                        endAP = times.group(8)
+
+                        if startAP == "PM" and startH != 12:
+                            startH += 12
+                        if endAP == "PM" and endH != 12:
+                            endH += 12
+
+                        startdays = startdays.split(",")
+                        for day in startdays:
+                            classtime = {
+                                "day": DayToNumber[day],
+                                "starttime": [startH, startM],
+                                "endtime": [endH, endM]
+                            }
+                            component["classtimes"].append(classtime)
 
 
-try:
-    arg = sys.argv[1]
-    if arg == "min":
-        with open(DIRNAME + OUTPUTDIR + "/courses.processed.min.json", "w") as f:
-            json.dump(data, f)
-        quit()
-except:
-    pass
-with open(DIRNAME + OUTPUTDIR + "/../courses.processed.json", "w") as f:
-    json.dump(data, f, indent=2)
+
+
+
+    # course["searchable"] = searchable
+    del course["table"]
+    del course["header"]
+
+if __name__ == "__main__":
+    data = []
+    for root, dirs, files in os.walk(DIRNAME + SOURCEDIR):
+        for file in files:
+            if file == "out-courses.json":
+                continue
+            with open(root + "/" + file) as f:
+                data.append(json.load(f))
+
+    filecounter = 0
+    output = []
+    for college in data:
+        filecounter += 1
+        for courseid in college:
+            course = college[courseid]
+            processcourse(course)
+
+    try:
+        arg = sys.argv[1]
+        if arg == "min":
+            with open(DIRNAME + OUTPUTDIR + "/courses.processed.min.json", "w") as f:
+                json.dump(data, f)
+            quit()
+    except:
+        pass
+    with open(DIRNAME + OUTPUTDIR + "/../courses.processed.json", "w") as f:
+        json.dump(data, f, indent=2)
