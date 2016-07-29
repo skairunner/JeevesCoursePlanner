@@ -1,5 +1,7 @@
-out/*
-*.json
+fall2016out
+spring2016out
+client/src/*.json
+*.7z
 chromedriver
 pass
 possiblemajors.txt
