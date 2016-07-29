@@ -42,4 +42,12 @@ class TestCourseProcessing(unittest.TestCase):
         section = course["components"][0]
         self.assertEqual(len(section["classtimes"]), 3)
 
+    def test_hasTopic(self):
+    	course = codecs.open("testdata/BUSF-SHU 220.testjson", "r", "utf-8").read()
+        course = json.loads(course)
+        processcourse(course)
+        self.assertEqual(course["topic"], "Chinese and International Accounting")
+        section = course["components"][0]
+        self.assertEqual(len(section["classtimes"]), 2)
+
 unittest.main()

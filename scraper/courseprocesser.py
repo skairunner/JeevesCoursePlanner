@@ -73,6 +73,9 @@ def stringFromTags(tags):
 
 def processcourse(course):
     soup = BS(course["table"], "html5lib")
+    for tag in soup("p"):
+        tag.unwrap();
+
     course["name"]  = re.search(r"[\w]+-[\w]+\s+[\w]+", course["header"]).group(0)
     course["title"] = course["header"].split(course["name"] + " ")[1]
     # A dirty hack to easily find the innermost <td>s
@@ -99,8 +102,10 @@ def processcourse(course):
         # First line has course name, units, #, section
         flattened = stringFromTags(lines[s])
         if "Topic:" in flattened:
-            s += 1 # increase starting line because there's a Topic
-            component["topic"] = flattened.split("Topic:")[1]
+            for n in range(len(lines[s])):
+                if "Topic:" in unicode(lines[s][n]):
+                    component["topic"] = unicode(lines[s][n]).split("Topic: ")[-1]
+                    break
 
         flattened = stringFromTags(lines[s])
         r = re.search(r"(\d+) units", flattened)
