@@ -5,6 +5,7 @@ import json
 
 class TestCourseProcessing(unittest.TestCase):
     def test_Single(self):
+    	# basic test
         course = codecs.open("testdata/BUSF-SHU 206.testjson", "r", "utf-8").read()
         course = json.loads(course)
         processcourse(course)
@@ -26,10 +27,19 @@ class TestCourseProcessing(unittest.TestCase):
         self.assertEqual(section["instructor"], "Yu, Da")
 
     def test_ignoreTestdates(self):
+    	# ignore any single-day classtimes. eg: 12/15/2016-12/15/2016, 2-5.
         course = codecs.open("testdata/CHIN-SHU 2-1S1.testjson", "r", "utf-8").read()
         course = json.loads(course)
         processcourse(course)
-
+        section = course["components"][0]
         self.assertEqual(len(section["classtimes"]), 2)
+
+    def test_multipleDateLines(self):
+    	# some classes have sessions at eg. Mon/Wed 1pm, then one on Thu 3pm.
+    	course = codecs.open("testdata/CHIN-SHU 403.testjson", "r", "utf-8").read()
+        course = json.loads(course)
+        processcourse(course)
+        section = course["components"][0]
+        self.assertEqual(len(section["classtimes"]), 3)
 
 unittest.main()
