@@ -104,7 +104,7 @@ def processcourse(course):
         if "Topic:" in flattened:
             for n in range(len(lines[s])):
                 if "Topic:" in unicode(lines[s][n]):
-                    component["topic"] = unicode(lines[s][n]).split("Topic: ")[-1]
+                    component["topic"] = lines[s][n].text.split("Topic: ")[-1]
                     break
 
         flattened = stringFromTags(lines[s])

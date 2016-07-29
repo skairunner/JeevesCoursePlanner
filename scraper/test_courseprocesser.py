@@ -46,8 +46,8 @@ class TestCourseProcessing(unittest.TestCase):
     	course = codecs.open("testdata/BUSF-SHU 220.testjson", "r", "utf-8").read()
         course = json.loads(course)
         processcourse(course)
-        self.assertEqual(course["topic"], "Chinese and International Accounting")
         section = course["components"][0]
+        self.assertEqual(section["topic"], "Chinese and International Accounting")
         self.assertEqual(len(section["classtimes"]), 2)
 
 unittest.main()
