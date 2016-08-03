@@ -7,6 +7,7 @@ from sanitizr import sanitize
 import os
 import bs4
 from bs4 import BeautifulSoup as BS
+import codecs
 
 """
 This file is to turn the raw data dump from albertscraper.py
@@ -19,8 +20,8 @@ Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
 DIRNAME   = os.path.dirname(os.path.abspath(__file__)) + "/"
-SOURCEDIR = "fall2016out/raw"
-OUTPUTDIR = "fall2016out"
+SOURCEDIR = "fall2016out/raw/"
+OUTPUTDIR = "fall2016out/permajor/"
 
 # s is a set
 def addWordsToSet(line, s):
@@ -175,11 +176,6 @@ def processcourse(course):
                                 "endtime": [endH, endM]
                             }
                             component["classtimes"].append(classtime)
-
-
-
-
-
     # course["searchable"] = searchable
     del course["table"]
     del course["header"]
@@ -190,24 +186,37 @@ if __name__ == "__main__":
         for file in files:
             if file == "out-courses.json":
                 continue
-            with open(root + "/" + file) as f:
+            with codecs.open(root + "/" + file, "r", "utf-8") as f:
                 data.append(json.load(f))
 
     filecounter = 0
-    output = []
     for college in data:
         filecounter += 1
         for courseid in college:
             course = college[courseid]
             processcourse(course)
 
-    try:
-        arg = sys.argv[1]
-        if arg == "min":
-            with open(DIRNAME + OUTPUTDIR + "/courses.processed.min.json", "w") as f:
-                json.dump(data, f)
-            quit()
-    except:
-        pass
-    with open(DIRNAME + OUTPUTDIR + "/../courses.processed.json", "w") as f:
-        json.dump(data, f, indent=2)
+    # Next, sort by school/major (CSCI-SHU and CSCI-AB are different, one is in SHU and the other in AB) and output.
+    with codecs.open(DIRNAME + "majorcodearray.json", "r", "utf-8") as f:
+        majorcodes = json.load(f)
+
+    output = {
+        "other": {}
+    }
+    for major in majorcodes:
+        output[major] = {}
+
+    for college in data:
+        for coursenumber in college:
+            course = college[coursenumber]
+            suffix = course["name"].split(" ")[0].split("-")[-1]
+            if suffix not in majorcodes:
+                output["other"][course["name"]] = course
+            else:
+                output[suffix][course["name"]] = course
+
+    for key, val in output.items():
+        with codecs.open(OUTPUTDIR + key + "_courses.flat.json", "w", "utf-8") as f:
+            json.dump(val, f, indent=2)
+        with codecs.open(OUTPUTDIR + "min_" + key + "_courses.flat.json", "w", "utf-8") as f:
+            json.dump(val, f)
