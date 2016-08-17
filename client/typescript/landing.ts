@@ -3,11 +3,13 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
 	d3.json("src/majorcodes.json", function(e, d){
 		// place all the choices
-		d = _.filter(_.pairs(d), function(d){
-			if (d[1][0] != "AD" && d[1][0] != "SHU")
-				return true;
-			return false;
-		});
+		var NYUSchools = [];
+		for (let i = 0; i < d.length; i++) {
+			let it = d[i];
+			if (it[1][0] != "AD" && it[1][0] != "SHU")
+				NYUSchools.push(it);
+		}
+		d = NYUSchools;
 
 		d3.select("#loading").remove();
 		var container = d3.select("#listcontainer");
@@ -28,7 +30,7 @@ function init() {
 			.attr("class", "buttoncontainer");
 		VIP.append("input")
 			.attr("type", "checkbox");
-		VIP.append("span").text(function(d) {return d[0];} );
+		VIP.append("span").text(function(d:string[]) {return d[0];} );
 		d3.select(".container").append("button").text("Go!").on("click", gotoJeeves);
 		d3.select(".underline").on("click", function(){
 			d3.select("#listcontainer").style("display", null);

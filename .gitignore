@@ -1,6 +1,8 @@
 fall2016out
 spring2016out
 client/src/*.json
+client/src/*.js
+client/src/*.js.map
 *.7z
 chromedriver
 pass
