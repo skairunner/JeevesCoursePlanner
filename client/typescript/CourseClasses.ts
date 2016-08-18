@@ -10,6 +10,20 @@ export class CourseTime {
         this.endtime = end;
         this.day = day;
     }
+
+    overlaps(other:CourseTime) {
+        if (this.day != other.day) {
+            return false;
+        }
+        // Times overlap if (StartA < EndB) AND (StartB < EndA). Touching is not overlapping
+        let condition1 = this.starttime.toMinutes() < other.endtime.toMinutes();
+        let condition2 = other.starttime.toMinutes() < this.endtime.toMinutes();
+        return condition1 && condition2
+    }
+
+    getDayName() {
+        return utility.DayFromInt[this.day];
+    }
 }
 
 export class CourseComponent {
@@ -47,6 +61,36 @@ export class CourseComponent {
             }
         }
     }
+
+    getMinStartTime() {
+        if (this.classtimes.length == 0) {
+            return new utility.Time([9, 0]);
+        }
+        let minindex = 0;
+        let minvalue = this.classtimes[0].starttime.toMinutes();
+        for (let i = 1; i < this.classtimes.length; i++) {
+            if (this.classtimes[i].starttime.toMinutes() < minvalue) {
+                minindex = i;
+                minvalue = this.classtimes[i].starttime.toMinutes(); 
+            }
+        }
+        return this.classtimes[minindex].starttime;
+    }
+
+    getMaxEndTime() {
+        if (this.classtimes.length == 0) {
+            return new utility.Time([15, 0]);
+        }
+        let maxindex = 0;
+        let maxvalue = this.classtimes[0].endtime.toMinutes();
+        for (let i = 1; i < this.classtimes.length; i++) {
+            if (maxvalue < this.classtimes[i].endtime.toMinutes()) {
+                maxindex = i;
+                maxvalue = this.classtimes[i].endtime.toMinutes(); 
+            }
+        }
+        return this.classtimes[maxindex].endtime;
+    }
 }
 
 export class Course {
@@ -54,6 +98,9 @@ export class Course {
     title: string;
     components: CourseComponent[];
     desc: string;
+    searchable: string;
+    requiredcomponents: string[];
+
     constructor(jsonobj: any) {
         this.name = jsonobj.name;
         this.title = jsonobj.title;
@@ -62,6 +109,8 @@ export class Course {
         for (var i = 0; i < jsonobj.components.length; i++) {
             this.components.push(new CourseComponent(jsonobj.components[i]));
         }
+        this.searchable = jsonobj.searchable;
+        this.requiredcomponents = jsonobj.requiredcomponents; 
     }
 }
 

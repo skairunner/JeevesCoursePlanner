@@ -35,49 +35,49 @@ export class Time {
 			minutes = "0" + m;
 		return h + ":" + minutes + timemarker;
 	}
+
+	toDate() {
+		return new Date(2015, 10, 14, this.h, this.m);
+	}
 }
 
 export var DayFromInt: string[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
-var colors: HexColor[] = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd','#ccebc5','#ffed6f'];
-// carr = colorarray. if not provided, default to colors
-export function pickColor(i: number, carr: HexColor[]) {	
-	if (carr == undefined) {
-		carr = colors;
-	} 
-	var index = i % carr.length;
-	return carr[index];
-}
-
-// Returns the back ones first
-export function rpickColor(i: number, carr: HexColor[]) {
-	if (carr == undefined) {
-		carr = colors;
-	} 
-	var index = carr.length - i% carr.length - 1;
-	return carr[index];
-}
-
-
-// Colors from colorbrewer2.org.
-var smartcolors: Array<HexColor[]> = [
-	['#f7fbff','#deebf7','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#084594'],
-	['#f7fcf5','#e5f5e0','#c7e9c0','#a1d99b','#74c476','#41ab5d','#238b45','#005a32'],
-	['#fff5eb','#fee6ce','#fdd0a2','#fdae6b','#fd8d3c','#f16913','#d94801','#8c2d04'],
-	['#fcfbfd','#efedf5','#dadaeb','#bcbddc','#9e9ac8','#807dba','#6a51a3','#4a1486'],
-	['#fff5f0','#fee0d2','#fcbba1','#fc9272','#fb6a4a','#ef3b2c','#cb181d','#99000d'],
-	['#ffffff','#f0f0f0','#d9d9d9','#bdbdbd','#969696','#737373','#525252','#252525']
-];
-
-// sequentially traverses colors. same course gets similar colors
-export function smartPickColor(coursecode: string, sectionid: number, colors: HexColor[]) {
-	var index = colors.indexOf(coursecode);
-	if (index != -1) {
-		return pickColor(sectionid+1, pickColor(index, smartcolors));
+export class ColorScale {
+	basecolor:string;
+	scale:d3.scale.Linear<number, string>;
+	steps:number;
+	constructor(basecolor:string, steps:number) {
+		this.steps = steps;
+		this.scale = d3.scale.linear().domain([0, steps]).range([basecolor, "#FFFFFF"]).interpolate(d3.interpolateLab);
+		this.basecolor = basecolor;
 	}
-	var i = colors.length;
-	colors.push(coursecode);
-	return pickColor(sectionid+1, pickColor(i, smartcolors));
+
+	get(input:string) {
+		// hash it however. collisions aren't important.
+		let hash = 1;
+		for (let i = 0; i < input.length; i++) {
+			hash *= input.charCodeAt(i);
+		}
+		hash = hash % this.steps;
+		if (hash == 0) hash = 1;
+		return this.scale(hash);
+	}
+}
+
+export class ColorPicker {
+	colorscales:any;
+	constructor() {
+		this.colorscales = {};
+	}
+
+	pickColor(coursecode:string, sectionid: string) {
+		if (coursecode in this.colorscales) {
+			let scale:ColorScale = this.colorscales[coursecode];
+			return scale.get(sectionid);
+		}
+		
+	}
 }
 
 // returns the string "hh:mm am ~ hh:mm pm"
@@ -167,4 +167,8 @@ export function arrmax<T>(arr: Array<T>, predicate: (T) => number) {
 
 export function isNull(thing) {
 	return thing != null;
+}
+
+export function identity<T>(thing:T) {
+	return thing;
 }

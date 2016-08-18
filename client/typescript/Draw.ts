@@ -117,15 +117,15 @@ export class Calendar {
 
 		} else {
 			// else, need to find new min and max times.
-			var min = utility.arrmin(courses, function(d){
-				return d.sectiondata.starttime.toMinutes();
+			let mintimes = courses.map(function(d:CourseClasses.SelectedCourse){
+				return d.component.getMinStartTime().toMinutes();
 			});
-			var max = utility.arrmax(courses, function(d){
-				return d.sectiondata.endtime.toMinutes();
+			let maxtimes = courses.map(function(d:CourseClasses.SelectedCourse){
+				return d.component.getMaxEndTime().toMinutes();
 			});
 
-			var mintime = min.component.starttime.toMinutes();
-			var maxtime = max.component.endtime.toMinutes();
+			var mintime = utility.arrmin(mintimes, utility.identity);
+			var maxtime = utility.arrmax(maxtimes, utility.identity);
 			// If doing mintime, round down. If doing maxtime, round up.
 			mintime = Math.floor(mintime/60);
 			maxtime = Math.ceil(maxtime/60);
@@ -139,12 +139,13 @@ export class Calendar {
 		var allcourses = svg.select(".coursearea")
 			.selectAll(".classblocks")
 			.data(courses, function(k){
-				return k.coursedata.name + " " + k.sectionindex;
+				return k.course.name + " " + k.sectionid;
 			});
-		allcourses.enter().append("g")
-		.classed("classblocks", true);
+		allcourses.enter().append("g").classed("classblocks", true);
+		
+		let self = this;
 		allcourses.each(function(d,i){
-			drawCourseBlock(d, i, this, calendar);
+			drawCourseBlock(d, i, self);
 		});
 		var exit = allcourses.exit();
 		// there are nodes to remove
@@ -179,7 +180,7 @@ function updateCreditsTotal(obj:Calendar) {
 			credits += course.component.units;
 		}
 	}
-	
+
 	d3.select("#credits").datum(credits).transition().duration(TT())
 		.ease(TTy()).tween('text', function(){return utility.tweenText;});
 }
@@ -190,16 +191,8 @@ function removeCourseBlock(d, i, me, obj: Calendar) {
 	outsidefuncs[0](true);
 }
 
-function DateFromTimeArr(t, d) {
-	if (t == undefined) {
-		console.warn("The course " + d.coursedata.name + " does not have time info.");
-		return undefined;
-	}
-	return new Date(2015, 10, 14, t[0], t[1]);
-}
-
 var TEXTTRUNLEN = 15;
-function drawCourseBlock(cdata, i, me, obj) {
+function drawCourseBlock(cdata:CourseClasses.SelectedCourse, i:number, obj:Calendar) {
 	function fontsizecallback(d, i) {
 		return d[1] + "px";
 	}
@@ -207,30 +200,20 @@ function drawCourseBlock(cdata, i, me, obj) {
 	var courses   = obj.courses;
 	var colors    = obj.colors;
 	var timescale = obj.timescale;
-	me = d3.select(me);
+	var me = d3.select(obj.selector);
 	
-	var days = cdata.sectiondata.days.map(function(x){
-		return utility.DayFromInt[x];});
-	// get times for scale stuff
-	var starttime = DateFromTimeArr(cdata.sectiondata.starttime, cdata);
-	var endtime = DateFromTimeArr(cdata.sectiondata.endtime, cdata);
-	if (starttime==undefined || endtime==undefined) {
-		return;
-	}
-	// it's possible that the section is a letter or some other horrible thing
-	var parsed = parseInt(cdata.sectionindex);
-	var parsedStr = "";
-	if (parsed != parsed) {
-		parsedStr = String(parsed);
-		var temp = "";
-		for (let j = 0; j < parsedStr.length; j++) {
-			temp += String(parsedStr.charCodeAt(j));
-		}
-		parsed = parseInt(temp)
-	}
-	var color = utility.smartPickColor(cdata.coursedata.name, 
-									parsed+1,
-									colors);
+	var days = cdata.component.classtimes.map(function(classtime){
+		return classtime.getDayName();
+	});
+	// get times per day
+	var starttimes = cdata.component.classtimes.map(function(classtime){
+		return classtime.starttime.toDate();
+	});
+	var endtimes = cdata.component.classtimes.map(function(classtime){
+		return classtime.endtime.toDate();
+	});
+	
+	var color = utility.smartPickColor(cdata.course.name, parsed+1, colors);
 	// nifty scale usage
 	var startY = timescale(starttime);
 	var endY   = timescale(endtime);

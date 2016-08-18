@@ -6,8 +6,6 @@ import * as CourseClasses from "./CourseClasses";
 
 var Promise = e6promise.Promise;
 
-
-
 class Filter {
 	raw:string; // the actual filter. eg "computer science"
 	results:SearchResult[];
@@ -49,48 +47,39 @@ var searchboxTimeout = null;
 // vs selected components. If not completely fulfilled, return
 // the components that need to be selected still.
 // sectionsSelected should a list of the actual components.
-function satisfiedCourseRequirements(courseinfo, sectionsSelected) {
+function satisfiedCourseRequirements(courseinfo:CourseClasses.Course, sectionsSelected:CourseClasses.SelectedCourse[]) {
 	var reqs = courseinfo.requiredcomponents;
-	var components = _.map(sectionsSelected, function(component){
-		if (component.coursedata.name == courseinfo.name) {
-			return component.sectiondata.componentType;
+	var components:string[] = [];
+	for (let i = 0; i < sectionsSelected.length; i++) {
+		let component = sectionsSelected[i];
+		if (component.course.name == courseinfo.name) {
+			components.push(component.component.componentType);
 		}
-		return null;
-	});
-	var require =  _.reduce(reqs, function(memo, req){
-		if (components.indexOf(req) == -1) {
-			memo.push(req);
+	}
+	var stillrequired:string[] = [];
+	for (let i = 0; i < reqs.length; i++) {
+		if (components.indexOf(reqs[i]) == -1) {
+			stillrequired.push(reqs[i]);
 		}
-		return memo;
-	}, []);
-	return require;
+	}
+
+	return stillrequired;
 }
 
-function timeCollides(component, courses) {
-	var days  = component.days;
-	var start = component.starttime;
-	var end   = component.endtime;
-	for (var i in courses) {
-		var selected = courses[i].sectiondata;
-		var cdays   = selected.days;
-		var cstart = selected.starttime;
-		var cend   = selected.endtime;
-		// if cdays or cstart or cend are null, continue to next iter.
-		if (!cstart || !cdays || !cend) {
-			continue;
+function timeCollides(component:CourseClasses.CourseComponent, courses:CourseClasses.SelectedCourse[]) {
+	let classtimes1 = component.classtimes;
+	for (let i = 0; i < courses.length; i++) {
+		let other = courses[i];
+		let classtimes2 = other.component.classtimes;
+		for (let x = 0; x < classtimes1.length; x++) {
+			for (let y = 0; y < classtimes2.length; y++) {
+				if (classtimes1[x].overlaps(classtimes2[y])) {
+					return true;
+				}
+			}
 		}
-		var commondays = _.intersection(days, cdays);
-		if (commondays.length == 0) { // if they have no days in common, continue
-			continue;
-		}
-		// cases of collision: 
-		// 1. if cstart is before end, while C doesn't end before it starts
-		// cstart <= end && !(cend, start)
-		if (utility.cmptime(cstart, end) && !utility.cmptime(cend, start)) return true;
-		// 2. if cend is after start, while cstart isn't after end
-		if (utility.cmptime(start, cend) && !utility.cmptime(end, cstart)) return true;
 	}
-	return false
+	return false;
 }
 
 function max(a, b) {
@@ -98,15 +87,15 @@ function max(a, b) {
 	return b;
 }
 
-function filterintersect(f1, f2) {
-	var ret = [];
+function filterintersect(f1:SearchResult[], f2:SearchResult[]) {
+	var ret:SearchResult[] = [];
 	var f1Len = f1.length;
 	var f2Len = f2.length;
 	for (var i = 0; i < f1Len; i++) {
 		for (var z = 0; z < f2Len; z++) {
-			if (f1[i][0] == f2[z][0]) {
-				var result = [f1[i][0], f1[i][1]];
-				result[1] = max(f1[i][1], f2[z][1]);
+			if (f1[0].coursename == f2[z].coursename) {
+				var result = new SearchResult(f1[i].coursename, f1[i].priority);
+				result.priority = max(f1[i].priority, f2[z].priority);
 				ret.push(result);
 				break;
 			}
@@ -114,7 +103,6 @@ function filterintersect(f1, f2) {
 	}
 	return ret;
 }
-
 
 // Combines the various filters and displays the results in the search area.
 function displaySearchResults(includeActive:boolean) {
@@ -136,11 +124,11 @@ function displaySearchResults(includeActive:boolean) {
 	});
 	results = results.filter(utility.isNull); // remove empty filters
 	// sort by priority
-	for (var i = 0; i < results.length; i++) {
+	for (let i = 0; i < results.length; i++) {
 		results[i].sort(function(d1, d2){ return d2.priority - d1.priority; });
 	}
 
-	var intersection;
+	var intersection:SearchResult[];
 	if (results.length >= 2) {
 		intersection = filterintersect(results[0], results[1]);
 		for (var i = 2; i < results.length; i++) {
@@ -151,20 +139,21 @@ function displaySearchResults(includeActive:boolean) {
 	} else {
 		intersection = [];
 	}
+ 
 
 	var finalcoursecodes = intersection.map(function(result){
-		var code = result[0]; // result[1] is priority
+		var code = result.coursename;
 		// If already taking course:
 		// 1. if all requirements filled, return null
-		var courseinfo = coursecatalogue[code];
-		var required = satisfiedCourseRequirements(courseinfo, calendars[active].courses);
+		var courseinfo:CourseClasses.Course = coursecatalogue.table[code];
+		var stillrequired = satisfiedCourseRequirements(courseinfo, calendars[active].courses);
 		// 2. if not, exclude already taken componentTypes.
-		if (required.length == 0) {
+		if (stillrequired.length == 0) {
 			return null;
 		}
 		var sections = courseinfo.components.filter(function(comp){
-			if (required.indexOf(comp.componentType) == -1) {
-				return false
+			if (stillrequired.indexOf(comp.componentType) == -1) { // discard it if the component type has already been picked
+				return false;
 			}
 			return true;
 		});
@@ -175,7 +164,8 @@ function displaySearchResults(includeActive:boolean) {
 			});
 		}
 		if (sections.length == 0) return null;
-		return [code, sections];
+		let out:[string, CourseClasses.CourseComponent[]] = [code, sections];
+		return out;
 	});
 
 	// remove all null things.
@@ -189,7 +179,7 @@ function displaySearchResults(includeActive:boolean) {
 }
 
 
-function expandOrContractText(d, i) {
+function expandOrContractText(d:[string, CourseClasses.CourseComponent[]], i:number) {
 	var me = d3.select(this);
 	var text = d3.select(this.parentNode).select(".desctext");
 	var fulldesc = coursecatalogue[me.datum()[0]].desc;
@@ -204,10 +194,10 @@ function expandOrContractText(d, i) {
 
 // Draws courses and components
 function resultFormatter(d, i:number) {
-	var classcode = d[0];
-	var sectiondata = d[1];
+	var classcode:string = d[0];
+	var sectiondata:CourseClasses.CourseComponent[] = d[1];
 	var selection = d3.select(this);
-	var data = coursecatalogue[classcode];
+	var data:CourseClasses.Course = coursecatalogue.table[classcode];
 
 	var header = selection.append("div").classed("header", true);
 	header.append("span").classed("coursecode",true).text(classcode);
@@ -226,7 +216,7 @@ function resultFormatter(d, i:number) {
 	// hook up the onclick function
 	sections.on("click", function(d){
 		// 'data' is the course info, 'd' the component info
-		addToCourses(data.name, +d.section, d);
+		addToCourses(data.name, d.section, d);
 	;});
 	// fill out info
 	sections.append("span").classed("sectionnum", true).text(function(d){
@@ -243,7 +233,7 @@ function resultFormatter(d, i:number) {
 		return d.units + " units";
 	});
 	sections.append("div").classed("details", true).text(function(d) {
-		return d.details;
+		return d.notes;
 	});
 }
 
@@ -316,11 +306,12 @@ function search(filter:string) {
 		filter = sanitize(filter);
 		results = [];
 		// if not in index, need to do it the hard way.
-		for (let course in coursecatalogue) {			
-			var coursedata:CourseClasses.Course = coursecatalogue.table[course];
-			var i = coursedata.searchable.indexOf(filter);
-			if (i >= 0) {
-				var priority = 200 - i;
+		for (let i in coursecatalogue.list) {
+			let coursedata = coursecatalogue.list[i];
+			let coursename = coursedata.name;
+			var index = coursedata.searchable.indexOf(filter);
+			if (index >= 0) {
+				var priority = 200 - index;
 				if (priority < 0) {
 					priority = 0;
 				}
@@ -380,10 +371,15 @@ function setFilterIfSpaces() {
 	decideNothingMessage(d3.select("#searchresults"));
 }
 
-function removefilter(d, i) {
-	var index = _.findIndex(filters, function(f){
-		return f[0]
-	});
+function removefilter(d, i:number) {
+	var index = -1;
+	// questionable for loop.
+	for (let i = 0; i < filters.length; i++) {
+		if (filters[i].raw) {
+			index = i;
+			break;
+		}
+	}
 	filters.splice(index, 1);
 	d3.select(this).remove();
 	displaySearchResults(true);
@@ -395,13 +391,13 @@ function searchbox(){
 		clearTimeout(searchboxTimeout);	
 		if (event.keyCode == 13) {// 'enter'
 			setFilterIfSpaces(); // move from activefilter to filterlist
-			activefilter[1] = search(activefilter[0]);
+			activefilter.results = search(activefilter[0]);
 			setFilter();
 			displaySearchResults(false);
 		} else {
 			searchboxTimeout = window.setTimeout(function(){
 				setFilterIfSpaces();
-				activefilter[1] = search(activefilter[0]);
+				activefilter.results = search(activefilter[0]);
 				displaySearchResults(true);
 			}, 100);
 		}
@@ -410,7 +406,6 @@ function searchbox(){
 
 function addToCourses(code, sectionindex, sectiondata) {
 	var courseprofile = new CourseClasses.SelectedCourse(coursecatalogue.table[code], sectionindex);
-	console.log("addToCourses sectionindex: " + sectionindex);
 	calendars[active].courses.push(courseprofile);
 	displaySearchResults(true); // because need to update conflicting stuff
 	calendars[active].draw();
@@ -433,7 +428,6 @@ function exportCourseNumbers() {
 }
 
 function newcalendar() {
-	console.log("new");
 	new Draw.Calendar(calendars);
 	Draw.transitionViewTo(calendars.length-1, calendars);
 	active = calendars.length - 1;
@@ -530,9 +524,6 @@ export function init(testing) {
 		d3.select("#main").style("display", null);
 		new Draw.Calendar(calendars);
 		calendars[0].draw();
-		new Draw.Calendar(calendars);
-		calendars[1].draw();
-		console.log(calendars);
 		d3.select("#searchbox").on("keyup", searchbox);
 		d3.select("#showconflicts").on("click", function(){displaySearchResults(true);});
 		d3.select("#export").on("click", function(){exportCourseNumbers();});
