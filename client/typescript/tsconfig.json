@@ -4,8 +4,5 @@
         "module": "amd",
         "sourceMap": true,
         "outDir": "../src/"
-    },
-    "exclude": [
-        "load.js"
-    ]
+    }
 }

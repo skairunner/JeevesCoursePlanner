@@ -1,4 +1,6 @@
 import d3 = require("d3");
+import * as utility from "./utility";
+import * as CourseClasses from "./CourseClasses";
 
 var dayscale = d3.scale.ordinal();
 dayscale.domain(utility.DayFromInt);
@@ -169,13 +171,15 @@ export function transitionViewTo(index: number, calendars: Calendar[]) {
 	updateCreditsTotal(calendars[index]);
 }
 
-function updateCreditsTotal(obj) {
-	var credits = _.reduce(obj.courses, function(memo, course){
-		if (course.sectiondata.units == undefined) {
-			return memo;
+function updateCreditsTotal(obj:Calendar) {
+	var credits = 0;
+	for (let i = 0; i < obj.courses.length; i++) {
+		let course = obj.courses[i];
+		if (course.component.units != undefined) {
+			credits += course.component.units;
 		}
-		return memo + course.sectiondata.units
-	}, 0);
+	}
+	
 	d3.select("#credits").datum(credits).transition().duration(TT())
 		.ease(TTy()).tween('text', function(){return utility.tweenText;});
 }

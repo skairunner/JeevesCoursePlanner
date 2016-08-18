@@ -1,6 +1,8 @@
 import d3 = require("d3");
 import e6promise = require("es6-promise");
 import * as Draw from "./Draw";
+import * as utility from "./utility";
+import * as CourseClasses from "./CourseClasses";
 
 var Promise = e6promise.Promise;
 
@@ -114,7 +116,6 @@ function filterintersect(f1, f2) {
 }
 
 
-// TODO: NEEDS PROPER FIXING.
 // Combines the various filters and displays the results in the search area.
 function displaySearchResults(includeActive:boolean) {
 	// filters looks like [[filter, [results]], [filter2, results2]]
@@ -133,11 +134,12 @@ function displaySearchResults(includeActive:boolean) {
 			return null
 		return r;
 	});
-	results = results.filter(null); // remove empty filters
-	// sort all.
+	results = results.filter(utility.isNull); // remove empty filters
+	// sort by priority
 	for (var i = 0; i < results.length; i++) {
-		results[i].sort(function(d1, d2){ return - d1[1] + d2[1]; });
+		results[i].sort(function(d1, d2){ return d2.priority - d1.priority; });
 	}
+
 	var intersection;
 	if (results.length >= 2) {
 		intersection = filterintersect(results[0], results[1]);
@@ -160,7 +162,7 @@ function displaySearchResults(includeActive:boolean) {
 		if (required.length == 0) {
 			return null;
 		}
-		var sections = _.filter(courseinfo.components, function(comp){
+		var sections = courseinfo.components.filter(function(comp){
 			if (required.indexOf(comp.componentType) == -1) {
 				return false
 			}
@@ -168,7 +170,7 @@ function displaySearchResults(includeActive:boolean) {
 		});
 		// If showconflicts is false, filter out those that conflict timewise
 		if (!d3.select("#showconflicts").property("checked")) {
-			sections = _.filter(sections, function(section){
+			sections = sections.filter(function(section){
 				return !timeCollides(section, calendars[active].courses);
 			});
 		}
@@ -177,7 +179,7 @@ function displaySearchResults(includeActive:boolean) {
 	});
 
 	// remove all null things.
-	finalcoursecodes = finalcoursecodes.filter(null);
+	finalcoursecodes = finalcoursecodes.filter(utility.isNull);
 	// each component needs its own entry.
 	d3.select('#searchresults').html('').selectAll(".courseholder").data(finalcoursecodes).enter()
 		.append("div").classed("courseholder",true).each(resultFormatter);
@@ -315,7 +317,7 @@ function search(filter:string) {
 		results = [];
 		// if not in index, need to do it the hard way.
 		for (let course in coursecatalogue) {			
-			var coursedata = coursecatalogue[course];
+			var coursedata:CourseClasses.Course = coursecatalogue.table[course];
 			var i = coursedata.searchable.indexOf(filter);
 			if (i >= 0) {
 				var priority = 200 - i;
@@ -431,6 +433,7 @@ function exportCourseNumbers() {
 }
 
 function newcalendar() {
+	console.log("new");
 	new Draw.Calendar(calendars);
 	Draw.transitionViewTo(calendars.length-1, calendars);
 	active = calendars.length - 1;
@@ -509,7 +512,7 @@ function promiseJson(filenames) {
 	return Promise.all(filenames.map(readJson));
 }
 
-function init(testing) {
+export function init(testing) {
 	Draw.outsidefuncs.push(displaySearchResults);
 	// load all files with a Promise.
 	var filenames:string[] = [];
@@ -527,6 +530,9 @@ function init(testing) {
 		d3.select("#main").style("display", null);
 		new Draw.Calendar(calendars);
 		calendars[0].draw();
+		new Draw.Calendar(calendars);
+		calendars[1].draw();
+		console.log(calendars);
 		d3.select("#searchbox").on("keyup", searchbox);
 		d3.select("#showconflicts").on("click", function(){displaySearchResults(true);});
 		d3.select("#export").on("click", function(){exportCourseNumbers();});
@@ -534,6 +540,9 @@ function init(testing) {
 		d3.select("#delete").on("click", function(){askremove(calendars[active])});
 		d3.select("#prev").on("click", function(){scrollleft();});
 		d3.select("#next").on("click", function(){scrollright();});
-		d3.select("#new").on("click", function(){newcalendar();});
+		// d3.select("#new").on("click", function(){newcalendar();});
+		d3.select("#new").on("click", newcalendar);
+	}).catch(function(error) {
+		throw new Error(error);
 	});
 }
