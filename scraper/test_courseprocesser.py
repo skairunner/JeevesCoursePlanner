@@ -50,4 +50,13 @@ class TestCourseProcessing(unittest.TestCase):
         self.assertEqual(section["topic"], "Chinese and International Accounting")
         self.assertEqual(len(section["classtimes"]), 2)
 
+    def test_Components(self):
+        course = codecs.open("testdata/CSCI-SHU 101.testjson", "r", "utf-8").read()
+        course = json.loads(course)
+        processcourse(course)
+        self.assertIn("requiredcomponents", course)
+        reqs = course["requiredcomponents"]
+        self.assertIn("Lecture", reqs)
+        self.assertIn("Recitation", reqs)
+
 unittest.main()

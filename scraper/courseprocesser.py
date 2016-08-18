@@ -84,6 +84,7 @@ def processcourse(course):
     course["components"] = []
     notes = []
     components = course["components"]
+    componentTypes = set()
     for td in cmps:
         components.append({})
         component = components[-1]
@@ -127,6 +128,7 @@ def processcourse(course):
         r = re.search(r"Component: (\w+)", flattened)
         if r:
             component["componentType"] = r.group(1)
+            componentTypes.add(r.group(1))
         # Forth line has times and instructor.
         # Fifth line might have times, or it might have notes.
         # basically: figure out if the line is Notes or not, then figure out if
@@ -176,7 +178,31 @@ def processcourse(course):
                                 "endtime": [endH, endM]
                             }
                             component["classtimes"].append(classtime)
-    # course["searchable"] = searchable
+
+    # Next, create the searchable corpus of the course.
+    searchable = [course["title"], course["desc"]]
+    units = []
+    coursenumbers = []
+    for component in components:
+        if "topic" in component:
+            searchable.append(component["topic"])
+        if "notes" in component:
+            searchable.append(component["notes"])
+        if "instructor" in component:
+            searchable.append(component["instructor"])
+        if "location" in component:
+            searchable.append(component["location"])
+        if "units" in component:
+            units.append(str(component["units"]) + " units") # separate because sanitization
+        coursenumbers.append(str(component["number"]))
+    searchableStr = sanitize(" ".join(searchable))
+    searchableStr = " ".join([course["name"].lower(), " ".join(coursenumbers), "".join(units), searchableStr])
+    course["searchable"] = searchableStr
+    
+    # Add required components
+    course["requiredcomponents"] = list(componentTypes)
+
+    # Clean up
     del course["table"]
     del course["header"]
 
