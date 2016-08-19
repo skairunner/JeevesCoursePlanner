@@ -16,7 +16,7 @@ export class Time {
 
 	toString() {
 		var h = this.h;
-		var m = this.h;
+		var m = this.m;
 		var am = true;
 		if (h >= 12) {
 			// time shenaningans
@@ -31,8 +31,12 @@ export class Time {
 			timemarker = "pm";
 		}
 		var minutes = "";
-		if (m < 10) 
+		if (m < 1)
+			minutes = "00";
+		else if (m < 10) 
 			minutes = "0" + m;
+		else
+			minutes = m.toString();
 		return h + ":" + minutes + timemarker;
 	}
 
@@ -41,34 +45,80 @@ export class Time {
 	}
 }
 
+// h in [0, 360), s [0, 1], l[0, 1]
+// rgb in [0, 255]
+function RgbFromHsl(h, s, l):[number, number, number] {
+	let C = (1 - Math.abs(2*l - 1)) * s;
+	let X = C * (1 - Math.abs((h / 60) % 2 - 1));
+	let m = l - C / 2;
+	// normalized rgb values
+	let rgb = [];
+	if (h < 60)       rgb = [C, X, 0];
+	else if (h < 120) rgb = [X, C, 0];
+	else if (h < 180) rgb = [0, C, X];
+	else if (h < 240) rgb = [0, X, C];
+	else if (h < 300) rgb = [X, 0, C];
+	else              rgb = [C, 0, X];
+
+	let r = rgb[0];
+	let g = rgb[1];
+	let b = rgb[2];
+	r = (r + m) * 255;
+	g = (g + m) * 255;
+	b = (b + m) * 255;
+	return [Math.floor(r), Math.floor(g), Math.floor(b)];
+}
+
+function hexFromRgb(rgb:[number, number, number]) {
+	let r = rgb[0];
+	let g = rgb[1];
+	let b = rgb[2];
+	let r_str = (r).toString(16);
+	let g_str = (g).toString(16);
+	let b_str = (b).toString(16);
+	if (r_str.length == 1) r_str = "0" + r_str;
+	if (g_str.length == 1) g_str = "0" + g_str;
+	if (b_str.length == 1) b_str = "0" + b_str;
+	return "#" + r_str + g_str + b_str;
+}
+
 export var DayFromInt: string[] = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 export class ColorScale {
 	basecolor:string;
 	scale:d3.scale.Linear<number, string>;
 	steps:number;
+	step:number;
 	constructor(basecolor:string, steps:number) {
 		this.steps = steps;
+		this.step = 1;
 		this.scale = d3.scale.linear().domain([0, steps]).range([basecolor, "#FFFFFF"]).interpolate(d3.interpolateLab);
 		this.basecolor = basecolor;
 	}
 
 	get(input:string) {
-		// hash it however. collisions aren't important.
-		let hash = 1;
-		for (let i = 0; i < input.length; i++) {
-			hash *= input.charCodeAt(i);
-		}
-		hash = hash % this.steps;
-		if (hash == 0) hash = 1;
-		return this.scale(hash);
+		// // hash it however. collisions aren't important.
+		// let hash = 1;
+		// for (let i = 0; i < input.length; i++) {
+		// 	hash *= input.charCodeAt(i);
+		// }
+		// hash = hash % this.steps;
+		// if (hash == 0) hash = 1;
+		// return this.scale(hash);
+		let col = this.scale(this.step);
+		this.step = (this.step + 1) % this.steps;
+		if (this.step == 0) this.step++;
+		return col;
 	}
 }
 
 export class ColorPicker {
 	colorscales:any;
+	H:number; // the degrees on the HSL scale.
+
 	constructor() {
 		this.colorscales = {};
+		this.H = Math.floor(Math.random() * 360);
 	}
 
 	pickColor(coursecode:string, sectionid: string) {
@@ -76,15 +126,14 @@ export class ColorPicker {
 			let scale:ColorScale = this.colorscales[coursecode];
 			return scale.get(sectionid);
 		}
-		
+		// allocate a new number
+		let color = hexFromRgb(RgbFromHsl(this.H, .75, .75));
+		this.colorscales[coursecode] = new ColorScale(color, 8);
+ 		this.H += 57;
+		if (this.H > 360) this.H -= 360;
+//		this.H += 33;
+		return this.colorscales[coursecode].get(sectionid);
 	}
-}
-
-// returns the string "hh:mm am ~ hh:mm pm"
-export function strFromSectionTime(sectiondata) {
-	var start: Time = sectiondata.starttime;
-	var end: Time = sectiondata.endtime;
-	return start.toString() + "—" + end.toString();
 }
 
 // is a <= comparison.

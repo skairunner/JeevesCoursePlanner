@@ -24,6 +24,13 @@ export class CourseTime {
     getDayName() {
         return utility.DayFromInt[this.day];
     }
+
+    // returns the string "hh:mm am ~ hh:mm pm"
+    formattedString() {
+        var start = this.starttime;
+        var end   = this.endtime;
+        return start.toString() + "—" + end.toString();
+    }
 }
 
 export class CourseComponent {
@@ -47,7 +54,12 @@ export class CourseComponent {
         } else {
             this.topic = "";
         }
-        this.units = parseInt(jsonobj.units);
+        if ("units" in jsonobj) {
+            this.units = parseInt(jsonobj.units);
+        } else {
+            this.units = 0;
+        }
+        
         this.instructor = jsonobj.instructor;
         this.notes = jsonobj.notes;
         this.classtimes = [];
@@ -128,7 +140,10 @@ export class SelectedCourse {
                 break;
             }
         }
+    }
 
+    isEquivalent(other:SelectedCourse) {
+        return this.component.coursenumber == other.component.coursenumber;
     }
 }
 

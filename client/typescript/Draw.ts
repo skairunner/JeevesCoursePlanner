@@ -31,7 +31,7 @@ export class Calendar {
 	selector:string;
 	axisorigin:string;
 	courses:Array<CourseClasses.SelectedCourse>;
-	colors:Array<utility.HexColor>;
+	colors:utility.ColorPicker;
 	master:Calendar[];
 	timescale: d3.time.Scale<number, number>;
 	timeaxis: d3.svg.Axis;
@@ -41,7 +41,7 @@ export class Calendar {
 		this.selector   = "#cal" + calendars.length;
 		this.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",40)";
 		this.courses    = [];
-		this.colors     = [];
+		this.colors     = new utility.ColorPicker();
 		this.master     = calendars;
 		this.timescale  = d3.time.scale().domain([new Date(2015, 10, 14, 8, 0), new Date(2015, 10, 14, 18, 0)]);
 		this.timescale.range([0, 500]);
@@ -137,15 +137,16 @@ export class Calendar {
 
 		// Next, draw the courses.
 		var allcourses = svg.select(".coursearea")
-			.selectAll(".classblocks")
+			.selectAll(".classblock")
 			.data(courses, function(k){
+				if (courses.length == 0) return "";
 				return k.course.name + " " + k.sectionid;
 			});
-		allcourses.enter().append("g").classed("classblocks", true);
+		allcourses.enter().append("g").classed("classblock", true);
 		
 		let self = this;
 		allcourses.each(function(d,i){
-			drawCourseBlock(d, i, self);
+			drawCourseBlock(d, this, i, self);
 		});
 		var exit = allcourses.exit();
 		// there are nodes to remove
@@ -153,7 +154,7 @@ export class Calendar {
 			var removed = exit.remove();
 			if (removed.node() != null) {
 				svg.select(".removed").append(function(){
-				return removed.node();
+					return removed.node();
 				});
 				exit.selectAll("*")
 				.transition().duration(TT()).ease(TTy())
@@ -185,22 +186,28 @@ function updateCreditsTotal(obj:Calendar) {
 		.ease(TTy()).tween('text', function(){return utility.tweenText;});
 }
 
-function removeCourseBlock(d, i, me, obj: Calendar) {
-	obj.courses = _.without(obj.courses, d);
+function removeCourseBlock(d:CourseClasses.SelectedCourse, i:number, obj: Calendar) {
+	let newcourses:CourseClasses.SelectedCourse[] = [];
+	for (let j = 0; j < obj.courses.length; j++) {
+		if (!obj.courses[j].isEquivalent(d)) {
+			newcourses.push(obj.courses[j]);
+		}
+	}
+	obj.courses = newcourses;
 	obj.draw();
-	outsidefuncs[0](true);
+	outsidefuncs[0](true); // update search results
 }
 
 var TEXTTRUNLEN = 15;
-function drawCourseBlock(cdata:CourseClasses.SelectedCourse, i:number, obj:Calendar) {
-	function fontsizecallback(d, i) {
+function drawCourseBlock(cdata:CourseClasses.SelectedCourse, self, i:number, obj:Calendar) {
+	function fontsizecallback(d) {
 		return d[1] + "px";
 	}
 
-	var courses   = obj.courses;
 	var colors    = obj.colors;
 	var timescale = obj.timescale;
-	var me = d3.select(obj.selector);
+	// var me        = d3.select(obj.selector);
+	var me        = d3.select(self); // a classblock
 	
 	var days = cdata.component.classtimes.map(function(classtime){
 		return classtime.getDayName();
@@ -213,79 +220,116 @@ function drawCourseBlock(cdata:CourseClasses.SelectedCourse, i:number, obj:Calen
 		return classtime.endtime.toDate();
 	});
 	
-	var color = utility.smartPickColor(cdata.course.name, parsed+1, colors);
+	var color = obj.colors.pickColor(cdata.course.name, cdata.sectionid);
 	// nifty scale usage
-	var startY = timescale(starttime);
-	var endY   = timescale(endtime);
-	var dY     = endY - startY;
+	var startYs = starttimes.map(function(time){return timescale(time);});
+	var endYs   = endtimes.map(function(time){return timescale(time);});
+	var dYs:number[]     = [];
+	for (let i = 0; i < endYs.length; i++) {
+		dYs.push(endYs[i] - startYs[i]);
+	}
+	var timestrings:string[] = [];
+	for (let i = 0; i < cdata.component.classtimes.length; i++) {
+		timestrings.push(cdata.component.classtimes[i].formattedString());
+	}
+	var data:{day:string, start:number, dY:number, timeStr:string, courseCode:string}[] = [];
+	for (let i = 0; i < endYs.length; i++) {
+		data.push({day:days[i],
+			start:startYs[i],
+			dY:dYs[i],
+			timeStr:timestrings[i],
+			courseCode: cdata.component.coursenumber.toString()
+		});
+	}
 	// append a colored block for each class.
-	var update = me.selectAll(".classblock").data(days);
-	var enter  = update.enter();
-	enter.append("g").classed("classblock", true)
-			.attr("transform", function(d){
-			return "translate(" + dayscale(d) + "," + startY + ")";
-			});
-	// update selection
-	update.transition().ease(TTy()).duration(TT())
-					.attr("transform", function(d){
-				return "translate(" + dayscale(d) + "," + startY + ")";});
+	//var update = me.select(".coursearea").selectAll(".classblock").data(data, function(d){ return d.courseCode + d.day; }); // needs key function to prevent jumping around
 
+	//var enter  = update.enter();
+	// me.attr("transform", function(d){
+	// 		return "translate(" + dayscale(d.day) + "," + d.start + ")";
+	// });
 
-	var rectupdate = update.selectAll('rect')
-				.data(['.']);
+	// me.datum() is a SelectedCourse
+	var rectupdate = me.append("g")
+					   .classed("rectholder", true)
+					   .selectAll("rect")
+					   .data(data, function(d){ return  d.courseCode + d.day + "rect";});
+	
+	// zip up dY, time and cdata for textupdate.
+	let textdata:[number, CourseClasses.CourseTime, CourseClasses.SelectedCourse, number][] = [];
+	for (let i = 0; i < cdata.component.classtimes.length; i++) {
+		textdata.push([dYs[i], cdata.component.classtimes[i], cdata, startYs[i]]);
+	}
 
-	var textupdate = update.selectAll(".blocktext").data(function(d){
-				var texts = [cdata.coursedata.name + "-" + cdata.sectiondata.section,
-							cdata.coursedata.title,
-							cdata.sectiondata.name,
-							utility.strFromSectionTime(cdata.sectiondata),
-							cdata.sectiondata.componentType];
+	let textdata2 = textdata.map(function(tdata){
+				var texts = [cdata.course.name + "-" + cdata.sectionid,
+							 cdata.course.title,
+							 cdata.component.instructor,
+							 tdata[1].formattedString(),
+							 cdata.component.componentType];
 				var sizes = texts.map(function(text) {
 					return utility.findTextWidth(text, "Open Sans", dayscale.rangeBand())
 				});
 				// b.c. the 1th text is usually very long
 				sizes[1] = utility.findTextWidth(texts[1].substr(0,TEXTTRUNLEN), "Open Sans", dayscale.rangeBand());
-				return _.zip(texts, sizes);
+				let out:[string, number, number, CourseClasses.CourseTime, number][] = []
+				for (let j = 0; j < texts.length; j++) {
+					out.push([texts[j], sizes[j], tdata[0], tdata[1], tdata[3]]); // 2 used to be d.dY
+				}
+				return out;
 			});
 
-	rectupdate.transition().ease(TTy()).duration(TT()).attr("height", dY);
-	textupdate.transition().ease(TTy()).duration(TT()).attr("y", function(d,i){return (i+1)*dY/6;});
-	
+
+	var textholder = me.selectAll(".blocktextholder")
+					   .data(textdata2, function(d){return cdata.component.coursenumber + d[0][3].getDayName();})
+					   .enter()
+					   .append("g")
+					   .classed("blocktextholder", true)
+					   .attr("transform", function(d){return "translate(" + dayscale(d[0][3].getDayName()) + "," + d[0][4] + ")";});
+
+	// resize existing squares
+	rectupdate.transition().ease(TTy()).duration(TT()).attr("height", function(d,i){ return d.dY;});
+    me.selectAll(".blocktext").transition().ease(TTy()).duration(TT()).attr("y", function(d,i){return (i+1)*d[2]/6;});
 
 	rectupdate.enter()
 			.append("rect")
-			.attr("height", dY/2)
-			.on("click", function(d,i){removeCourseBlock(cdata, i, this, obj);})
+			.attr("height", function(d,i){return d.dY/2;})
+			.on("click", function(d,i){removeCourseBlock(cdata, i, obj);})
 			.attr("fill", color)
 			.attr("width", dayscale.rangeBand())
+			.attr("transform", function(d){ return "translate(" + dayscale(d.day) + "," + d.start + ")";})
 			.transition().ease(TTy()).duration(TT())
-			.attr("height", dY);
+			.attr("height", function(d,i){return d.dY;});
 
-	textupdate.enter()
-			.append("text").classed("blocktext", true)
-			.attr("y", function(d,i){return (i+1)*dY/6/2;})
-			.on("mouseover", function(d,i){
-				if (i == 1) {					
-					d3.select(this).text(d[0]);
-				}
-			})
-			.on("mouseout", function(d,i){
-			if (i == 1) {					
-				d3.select(this).text(d[0].substr(0,TEXTTRUNLEN));
-			}})
-			.style("font-size", fontsizecallback)
-			.text(function(d,i){
-				if (i==1) {
-					return d[0].substr(0,TEXTTRUNLEN);
-				}
-				return d[0];
-			})
-			.classed("mousepassthru", function(d,i){
-			if (i != 1) { return true;}
-			return false;
-			})
-			.transition().ease(TTy()).duration(TT())
-			.attr("y", function(d,i){return (i+1)*dY/6;});
+	let textupdate = textholder.selectAll(".blocktext")
+						.data(function(datum:[string, number, number, CourseClasses.CourseTime, number][], i){ return datum;})
+						.enter()
+						.append("text")
+						.classed("blocktext", true)
+						.attr("y", function(d,i){console.log(d); return (i+1)*d[2]/6/2;})
+						.on("mouseover", function(d,i){
+							if (i == 1) {
+								d3.select(this).text(d[0]);
+							}
+						})
+						.on("mouseout", function(d,i){
+							if (i == 1) {					
+								d3.select(this).text(d[0].substr(0,TEXTTRUNLEN));
+							}})
+						.style("font-size", fontsizecallback)
+						.text(function(d,i){
+							if (i==1) {
+								return d[0].substr(0,TEXTTRUNLEN);
+							}
+							return d[0];
+						})
+						.classed("mousepassthru", function(d,i){
+							if (i != 1) { return true;}
+							return false;
+							})
+						.transition().ease(TTy()).duration(TT())
+						.attr("y", function(d,i){return (i+1)*d[2]/6;});;
+	
 }
 
 function redrawLines(axisorigin) {
