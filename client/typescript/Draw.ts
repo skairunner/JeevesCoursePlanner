@@ -41,12 +41,12 @@ export class Calendar {
 
 	constructor(calendars: Calendar[]){
 		this.selector   = "#cal" + calendars.length;
-		this.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",40)";
+		this.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",-80)";
 		this.courses    = [];
 		this.colors     = new utility.ColorPicker();
 		this.master     = calendars;
 		this.timescale  = d3.time.scale().domain([new Date(2015, 10, 14, 8, 0), new Date(2015, 10, 14, 18, 0)]);
-		this.timescale.range([0, 500]);
+		this.timescale.range([0, 650]);
 		this.timeaxis = d3.svg.axis().scale(this.timescale).tickFormat(tickformat).orient("left");
 		this.dayaxis = d3.svg.axis().scale(dayscale).orient("top");
 		var svg = d3.select("#calendarsvg").append("g")
@@ -150,6 +150,7 @@ export class Calendar {
 		allcourses_enter.append("g").classed("rectholder", true)
 						.selectAll(".rect").data(function(d:CourseClasses.SelectedCourse){
 							let out:{topY:number, botY:number, height:number, day:string, coursedata:CourseClasses.SelectedCourse, color:string}[] = [];
+							let rectcolor = colors.pickColor(d.course.name, d.component.section);
 							for (let j = 0; j < d.component.classtimes.length; j++) {
 								let time = d.component.classtimes[j];
 								let topY = timescale(time.starttime.toDate());
@@ -160,7 +161,7 @@ export class Calendar {
 									height: botY - topY,
 									day:time.getDayName(),
 									coursedata: d,
-									color:colors.pickColor(d.course.name, d.component.section)
+									color:rectcolor
 								};
 								out.push(rect);
 							}
@@ -210,9 +211,13 @@ export class Calendar {
 								let topY = timescale(d.time.starttime.toDate());
 								let botY = timescale(d.time.endtime.toDate());
 								let dY = botY - topY;
+								let text = lines[j]
+								if (j == 1) {
+									text = lines[j].substr(0, TEXTTRUNLEN);
+								}
 								out.push({
-									text:lines[j],
-									fontsize:utility.findTextWidth(lines[j], "Open Sans", dayscale.rangeBand()),
+									text:text,
+									fontsize:utility.findTextWidth(text, "Open Sans", dayscale.rangeBand()),
 									boxheight:dY
 								});
 							}
@@ -221,16 +226,25 @@ export class Calendar {
 						})
 						.enter()
 						.append("text")
-							.attr("y", function(d, i){return i*d.boxheight/5.2;})
+							.attr("y", function(d, i){return (i+1) * d.boxheight/5.2/2;})
 							.style("font-size", function(d){return d.fontsize + "px";})
 							.classed("mousepassthru", function(d,i){
 								return i != 1;
 							})
-							.text(function(d){return d.text;})
+							.text(function(d, i){
+								if (i==1) return d.text.substr(0, TEXTTRUNLEN);
+								return d.text;
+							})
+						.on("mouseover", function(d:{text:string, fontsize:number, boxheight:number}, i){
+							if (i == 1) d3.select(this).text(d.text);
+						})
+						.on("mouseout", function(d, i){
+							if (i == 1) d3.select(this).text(d.text.substr(0, TEXTTRUNLEN));
+						})
 						.transition()
 							.ease(TTy())
 							.duration(TT())
-							.attr("y", function(d, i){return i * d.boxheight / 5.2});
+							.attr("y", function(d, i){return (i+1) * d.boxheight / 5.2});
 		
 		/*.each(function(d,i){
 			drawCourseBlock(d, this, i, self);
