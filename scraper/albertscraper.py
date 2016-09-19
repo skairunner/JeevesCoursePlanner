@@ -22,9 +22,9 @@ each major, in out/.
 
 DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/fall2016out/raw"
 
-def dumpJson(obj, fname):
+def dumpJson(obj, subdir, fname):
     fname = fname.replace("/", "-").replace("&", " ")
-    with open(fname, "w") as f:
+    with open(DIRNAME + "/" + fname, "w") as f:
         json.dump(obj, f)
 
 driver = webdriver.Firefox()
@@ -66,13 +66,13 @@ time.sleep(5)
 
 # On second thought, don't need to select the school.
 selectables = []
-with open(DIRNAME + "majors.txt") as f:
+with open(DIRNAME + "/../majors.txt") as f:
     for line in f:
         selectables.append(line.strip())
 
 outdict = {}
 for subject in selectables:
-    print subject
+    print(subject)
     outdict[subject] = {}
 
     # Click on the subject link
@@ -136,7 +136,7 @@ for subject in selectables:
         outdict[subject][ident]["table"] = table.get_attribute("outerHTML")
 
     # intermediate saving
-    dumpJson(outdict[subject], "out/%s.json" % (subject))
+    dumpJson(outdict[subject], "out/", "%s.json" % (subject))
 
     # Go back to original page
     returnbutton = WebDriverWait(driver, timeout).until(
@@ -144,8 +144,8 @@ for subject in selectables:
     )
     returnbutton.click()
 
-print "Exporting to json"
+print("Exporting to json")
 
 #dumpJson(outdict, "out/courses.json")
-print "Done."
+print("Done.")
 driver.close()

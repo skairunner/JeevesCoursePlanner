@@ -1,6 +1,7 @@
 class Sanitizr:
     def __getitem__(self, c):
-        char = unichr(c)
+        #char = unichr(c)
+        char = chr(c)
         char = char.lower()
         if char in u"abcdefghijklmnopqrstuvwxyz'- ":
             return char

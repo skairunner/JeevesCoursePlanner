@@ -25,7 +25,7 @@ OUTPUTDIR = "fall2016out/permajor/"
 
 # s is a set
 def addWordsToSet(line, s):
-    line = unicode(line)
+    # line = unicode(line)
     line = sanitize(line)
     line = line.split()
     for x in line:
@@ -67,7 +67,7 @@ def stringFromTags(tags):
         try:
             out.append(t.text)
         except:
-            out.append(unicode(t))
+            out.append(t)
     return "".join(out)
 
 
@@ -105,7 +105,7 @@ def processcourse(course):
         flattened = stringFromTags(lines[s])
         if "Topic:" in flattened:
             for n in range(len(lines[s])):
-                if "Topic:" in unicode(lines[s][n]):
+                if "Topic:" in lines[s][n]:
                     component["topic"] = lines[s][n].text.split("Topic: ")[-1]
                     break
 
