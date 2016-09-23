@@ -288,35 +288,20 @@ class SearchResult {
 // Gets all courses that satisfy filter "d"
 function search(filter:string) {
 	var results:SearchResult[] = []
-	// check for special keywords
-	if (filter.indexOf("units:") == 0) {
-		filter = filter.substring(6,7);
-		// search for units only.
-		let dval = parseInt(filter);
-		for (let course in unitindex[dval]) {
-			course = unitindex[dval][course]
-			results.push(new SearchResult(course, 100));
-		}
-	} else if (filter.indexOf("startsafter:") == 0) {
-		filter = filter.substring(12,20);
-		// TODO: needs implementation
-	}
-	else {
-		// Find all the things that have d, and display.
-		filter = sanitize(filter);
-		results = [];
-		// if not in index, need to do it the hard way.
-		for (let i in coursecatalogue.list) {
-			let coursedata = coursecatalogue.list[i];
-			let coursename = coursedata.name;
-			var index = coursedata.searchable.indexOf(filter);
-			if (index >= 0) {
-				var priority = 200 - index;
-				if (priority < 0) {
-					priority = 0;
-				}
-				results.push(new SearchResult(coursedata.name, priority));
+	// Find all the things that have d, and display.
+	filter = sanitize(filter);
+	results = [];
+	// if not in index, need to do it the hard way.
+	for (let i in coursecatalogue.list) {
+		let coursedata = coursecatalogue.list[i];
+		let coursename = coursedata.name;
+		var index = coursedata.searchable.indexOf(filter);
+		if (index >= 0) {
+			var priority = 200 - index;
+			if (priority < 0) {
+				priority = 0;
 			}
+			results.push(new SearchResult(coursedata.name, priority));
 		}
 	}
 	return results
@@ -339,17 +324,17 @@ function setFilterTo(filter) {
 function setFilter() {
 	filters.push(activefilter);
 	d3.select("#filters").append("span")
-		.datum(activefilter[0])
+		.datum(activefilter)
 		.classed("filter", true)
-		.html("<span class=\"x\">&#10005;</span>" + activefilter[0]).on("click", removefilter);
+		.html("<span class=\"x\">&#10005;</span>" + activefilter.raw).on("click", removefilter);
 
 	activefilter = new Filter();
-	d3.select("#searchbox").property("value", activefilter[0]);
+	d3.select("#searchbox").property("value", activefilter.raw);
 	decideNothingMessage(d3.select("#searchresults"));
 }
 
 function setFilterIfSpaces() {
-	var strs = activefilter[0].split(" ");
+	var strs = activefilter.raw.split(" ");
 	if (strs.length > 1) {
 		var i = 0;
 		for (; i < strs.length - 1; i++) {
@@ -358,15 +343,15 @@ function setFilterIfSpaces() {
 			filter.results = search(strs[i]);
 			filters.push(filter);
 			d3.select("#filters").append("span")
-				.datum(activefilter[i])
+				.datum(filter.raw)
 				.classed("filter", true)
 				.html("<span class=\"x\">&#10005;</span>" + strs[i]).on("click", removefilter);
 		}
 		filter = new Filter();
 		filter.raw = strs[i];
 		activefilter = filter;
-		d3.select("#searchbox").property("value", activefilter[0]);
-		activefilter[1] = search(activefilter[0]);
+		d3.select("#searchbox").property("value", activefilter.raw);
+		activefilter.results = search(activefilter.raw);
 	}
 	decideNothingMessage(d3.select("#searchresults"));
 }
@@ -387,17 +372,17 @@ function removefilter(d, i:number) {
 
 function searchbox(){
 	if(coursecatalogue) {
-		activefilter[0] = this.value;
+		activefilter.raw = this.value;
 		clearTimeout(searchboxTimeout);	
 		if (event.keyCode == 13) {// 'enter'
 			setFilterIfSpaces(); // move from activefilter to filterlist
-			activefilter.results = search(activefilter[0]);
+			activefilter.results = search(activefilter.raw);
 			setFilter();
 			displaySearchResults(false);
 		} else {
 			searchboxTimeout = window.setTimeout(function(){
 				setFilterIfSpaces();
-				activefilter.results = search(activefilter[0]);
+				activefilter.results = search(activefilter.raw);
 				displaySearchResults(true);
 			}, 100);
 		}
