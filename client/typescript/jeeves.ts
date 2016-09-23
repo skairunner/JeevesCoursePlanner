@@ -440,6 +440,8 @@ function clonecalendar() {
 	var calendar = calendars[calendars.length-1];
 	// shallow copy
 	calendar.courses = current.courses.map(function(d){return d;});
+	// deep copy
+	calendar.colors = current.colors.copy();
 	calendars[calendars.length-1].draw();
 	Draw.transitionViewTo(calendars.length-1, calendars);
 	active = calendars.length - 1;

@@ -97,18 +97,17 @@ export class ColorScale {
 	}
 
 	get(input:string) {
-		// // hash it however. collisions aren't important.
-		// let hash = 1;
-		// for (let i = 0; i < input.length; i++) {
-		// 	hash *= input.charCodeAt(i);
-		// }
-		// hash = hash % this.steps;
-		// if (hash == 0) hash = 1;
-		// return this.scale(hash);
 		let col = this.scale(this.step);
 		this.step = (this.step + 1) % this.steps;
 		if (this.step == 0) this.step++;
 		return col;
+	}
+
+	copy() {
+		let out = new ColorScale(this.basecolor, this.steps);
+		out.steps = this.steps;
+		out.step = this.step;
+		return out;
 	}
 }
 
@@ -133,6 +132,15 @@ export class ColorPicker {
 		if (this.H > 360) this.H -= 360;
 //		this.H += 33;
 		return this.colorscales[coursecode].get(sectionid);
+	}
+
+	copy() {
+		let out = new ColorPicker();
+		out.H = this.H;
+		for(let coursecode in this.colorscales) {
+			out.colorscales[coursecode] = this.colorscales[coursecode].copy();
+		}
+		return out
 	}
 }
 

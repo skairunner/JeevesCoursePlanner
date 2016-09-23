@@ -146,6 +146,7 @@ export class Calendar {
 				return k.course.name + " " + k.sectionid;
 			});
 		let allcourses_enter = allcourses.enter().append("g").classed("classblock", true);
+		let calendar = this;
 		// rectangle drawing
 		allcourses_enter.append("g").classed("rectholder", true)
 						.selectAll(".rect").data(function(d:CourseClasses.SelectedCourse){
@@ -173,6 +174,7 @@ export class Calendar {
 							.attr("fill", function(d){return d.color;})
 							.attr("width", function(d){return dayscale.rangeBand();})
 							.attr("transform", function(d){return "translate(" + dayscale(d.day) + "," + d.topY + ")";})
+							.on("click", function(d,i){console.log(calendar);removeCourseBlock(d.coursedata, i, calendar);})
 						.transition()
 							.ease(TTy())
 							.duration(TT())
@@ -235,7 +237,7 @@ export class Calendar {
 								if (i==1) return d.text.substr(0, TEXTTRUNLEN);
 								return d.text;
 							})
-						.on("mouseover", function(d:{text:string, fontsize:number, boxheight:number}, i){
+						.on("mouseover", function(d:{text:string, fontsize:number, boxheight:number}, i:number){
 							if (i == 1) d3.select(this).text(d.text);
 						})
 						.on("mouseout", function(d, i){
@@ -302,7 +304,7 @@ function removeCourseBlock(d:CourseClasses.SelectedCourse, i:number, obj: Calend
 function redrawLines(axisorigin) {
 	var verticalpositions = [];
 	verticalpositions = utility.DayFromInt.map(function(day){
-		return dayscale(day)+dayscale.rangeBand();
+		return dayscale(day) + dayscale.rangeBand();
 	})
 	d3.select("#verticallines").selectAll(".verticalline")
 		.data(verticalpositions)
