@@ -141,7 +141,7 @@ text {
 	margin-left: auto;
 	margin-right: auto;
 	padding: 10px 10px;
-	width: 80%;
+	width: 90%;
 	display: inline-block;
 	text-align: center;
 }
@@ -165,3 +165,7 @@ input[type="button"].button-warning {
   color: #FFF;
   background-color: #eb5149;
   border-color: #eb5149; }
+
+#tools { 
+	font-size: 16px;
+}

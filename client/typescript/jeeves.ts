@@ -452,6 +452,7 @@ function askremove(d:Draw.Calendar) {
 	}, 3000);
 	target.text("Delete??").on("click", function(){
 		removecalendar(d, target);
+		target.on("click",null);
 		wait(target);
 		window.clearTimeout(timeout);
 	}).classed("button-warning", true);
