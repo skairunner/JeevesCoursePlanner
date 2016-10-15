@@ -32,7 +32,50 @@
   ga('send', 'pageview');
 
 </script>
-<script src="src/landing.js"></script>
+<script>document.addEventListener("DOMContentLoaded", init);
+function init() {
+    d3.json("src/majorcodes.json", function (e, d) {
+        // place all the choices
+        // var NYUSchools = [];
+        // for (var i = 0; i < d.length; i++) {
+        //     var it = d[i];
+        //     if (it[1][0] != "AD" && it[1][0] != "SHU")
+        //         NYUSchools.push(it);
+        // }
+        // d = NYUSchools;
+        d3.select("#loading").remove();
+        // var container = d3.select("#listcontainer");
+        // var divs = container.selectAll(".possibles")
+        //     .data(d)
+        //     .enter()
+        //     .append("div")
+        //     .attr("class", "buttoncontainer");
+        // divs.append("input").attr("type", "checkbox");
+        // divs.append("span")
+        //     .text(function (d) { return d[0]; });
+        // also append Abu Dhabi and Shanghai at the top.
+        var VIP = d3.select("#SHU-AD")
+            .selectAll(".buttoncontainer")
+            .data([["NYU Shanghai", ["SHU"]]])
+            .enter()
+            .append("div")
+            .attr("class", "buttoncontainer");
+        VIP.append("input")
+            .attr("type", "checkbox");
+        VIP.append("span").text(function (d) { return d[0]; });
+        d3.select(".container").append("button").text("Go!").on("click", gotoJeeves);
+        // d3.select(".underline").on("click", function () {
+        //     d3.select("#listcontainer").style("display", null);
+        //     d3.select(this).classed(".underline", null).text("NYU New York");
+        // });
+    });
+}
+function gotoJeeves() {
+    var schools = ["SHU"];
+    window.localStorage.setItem("schools", JSON.stringify(schools));
+    window.location.assign("src/jeeves.html");
+}
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js" charset="utf-8"></script>
 <body>
 	<div id="main" class="container">
@@ -44,7 +87,9 @@
 		<div>
 			<div id="SHU-AD" class="doublecolumn">
 			</div>
-			<span class="underline">NYU New York: Click to expand</span>
+			<div id="message">
+				<h3></h3>
+			</div>
 			<div class="doublecolumn" style="display:none;" id="listcontainer">
 				<div id="loading">
 					<br>

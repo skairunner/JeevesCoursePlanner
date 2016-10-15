@@ -126,7 +126,15 @@ text {
 }
 
 #coursenums {
-	border: 2px solid black;
+	/*border: 2px solid black;*/
+}
+
+#coursenums td {
+	padding: 1rem 1rem;
+}
+
+#coursenums th {
+	padding: 1rem 1rem;
 }
 
 .title {
@@ -168,4 +176,64 @@ input[type="button"].button-warning {
 
 #tools { 
 	font-size: 16px;
+}
+
+.modal {
+	background-color: white;
+	border-radius: 5px;
+	border-color: rgba(0, 0, 0, 0.4);
+	border-width: 1px;
+	border-style: solid;
+}
+
+#menumodal {
+	margin: 10px 10px;
+	font-weight: 500;
+}
+
+/* for the arrow */
+#menumodal:before{
+    content: ' ';
+    display: block;
+    position: absolute;
+    left: 40px;
+    top: -9px;
+    width: 14px;
+    height: 14px;
+	border-color: rgba(0, 0, 0, 0.3);
+    border-width: 1px;
+    border-style: none none solid solid;
+    background-color: #fff;
+    transform: rotate(135deg);
+    z-index: -1;
+}
+.flushbutton {
+	padding: 10px 15px;
+	text-align: left;
+	cursor:pointer;
+}
+
+.flushbutton:not(:first-child) {
+	border-top-style: solid;
+	border-top-color: rgba(0, 0, 0, 0.3);
+	border-top-width: 1px;
+}
+
+.flushbutton:hover{
+	background-color:#334FF0;
+	color:#fff;
+}
+
+#modal_background {
+	/*background-color: rgba(0, 0, 0, 0.8);*/
+	content:" ";
+	width: 100%;
+	height: 100%;
+	top: 0px;
+	left:0px;
+	position: fixed;
+}
+
+#courseexport {
+
 }

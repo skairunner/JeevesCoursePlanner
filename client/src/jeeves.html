@@ -55,18 +55,24 @@
 				<div style="clear:both;"></div>
 				</div>
 				<div id="calendardiv">
-					<svg id="calendarsvg" height="800" 
-					width="800" viewBox="0 0 800 600"></svg>
+					<svg id="calendarsvg" height="800" width="800" viewBox="0 0 800 600" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>
 				</div>
 			</div>
 			<div style="clear:both"></div>
 		</div>
 
 		<div id="footer" class="row">
-			<div>
-				<button type="button" class="button-primary" id="export">Get list of course numbers</button>
-				<table id="coursenums"></div>
-			</div>
 		</div>
 	</div>
+	<!-- The thing you click to close the modal -->
+	<div id="modal_background" style="display:none"></div>
+	<div id="menumodal" class="modal" style="display:none">
+		<div class="flushbutton" id="exportbutton">Export list of courses</div>
+		<div class="flushbutton" id="saveasimgbutton">Save schedule as image</div>
+		<div class="flushbutton" id="savelocally">Remember this schedule</div>
+	</div>
+	<div id="courseexport" class="modal" style="display:none">
+		<table id="coursenums"></div>
+	</div>
+	<div id="output"></div>
 </body>
