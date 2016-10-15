@@ -41,7 +41,7 @@ export class Calendar {
 
 	constructor(calendars: Calendar[]){
 		this.selector   = "#cal" + calendars.length;
-		this.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",-80)";
+		this.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",-70)";
 		this.courses    = [];
 		this.colors     = new utility.ColorPicker();
 		this.master     = calendars;

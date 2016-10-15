@@ -29,7 +29,7 @@ export class CourseTime {
     formattedString() {
         var start = this.starttime;
         var end   = this.endtime;
-        return start.toString() + "—" + end.toString();
+        return start.toString() + "—" + end.toString(); // used to be "—" but because unicode is terrible.
     }
 }
 

@@ -1,4 +1,5 @@
 import d3 = require("d3");
+import Tether = require("tether");
 import e6promise = require("es6-promise");
 import * as Draw from "./Draw";
 import * as utility from "./utility";
@@ -399,6 +400,7 @@ function addToCourses(code, sectionindex, sectiondata) {
 //////////////////////////////
 
 function exportCourseNumbers() {
+
 	var out = calendars[active].courses.map(function(d){
 		return [d.course.name + "-" + d.component.section,
 		d.course.title,
@@ -406,10 +408,67 @@ function exportCourseNumbers() {
 		d.component.coursenumber]
 	});
 
-	d3.select("#coursenums").html('').selectAll("tr").data(out)
-		.enter().append("tr").selectAll("td").data(function(d:(string|number)[]){return d;}) // intermediate data type specified
+	let table = d3.select("#coursenums").html('');
+	table.append("tr").selectAll("th").data(["Course code", "Course name", "Component type", "ID"]).enter()
+		 .append("th").text(function(d){return d;});
+	table.selectAll(".coursetr").data(out)
+		.enter().append("tr").classed(".coursetr", true).selectAll("td").data(function(d:(string|number)[]){return d;}) // intermediate data type specified
 		.enter()
 		.append("td").text(function(d) {return d;});
+
+	d3.select("#courseexport").style("display", "");
+	courseexportTether.position();
+	d3.select("#menumodal").style("display", "none");
+}
+
+// from MDN https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/btoa
+function utoa(str) {
+    return window.btoa(encodeURIComponent(str));
+}
+
+function exportImage() {
+	d3.text("https://fonts.googleapis.com/css?family=Open+Sans", function(e, fontcss){
+		d3.text("jeeves.css", function(e, jeevescss){
+			// clone svg
+			var svg2 = document.querySelector('#calendarsvg').cloneNode(true);
+			let css = document.createElement("style");
+			css.innerHTML = "/* <![CDATA[ */" + fontcss + jeevescss + "/* ]]> */";
+			console.log(css);
+			svg2.appendChild(css);
+			// var svgString = new XMLSerializer().serializeToString(document.querySelector('#calendarsvg'));
+			var svgString = new XMLSerializer().serializeToString(svg2);
+			var canvas = document.createElement("canvas");
+			canvas.width = 880; canvas.height = 880;
+			var ctx = canvas.getContext("2d");
+			var DOMURL = self.URL || self.webkitURL || self;
+			var svg = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
+			var url = DOMURL.createObjectURL(svg);
+			let img = document.createElement("img");
+			img.width = 880; img.height = 880;
+			img.src = url;
+			img.onload = function() {
+				ctx.drawImage(img, 10, 100, 810, 810);
+				document.querySelector("body").appendChild(canvas);
+				let imgdata = canvas.toDataURL();
+				let a = document.createElement("a");
+				a.download = "schedule.png";
+				a.href = imgdata;
+				a.click();
+			}
+
+			// d3.select("body").append("img").attr("src", url);
+
+			// img.src = url;
+			// img.onload = function() {
+			// 	var a = document.createElement("a");
+			// 	a.download = "sample.png";
+			// 	a.href = url;
+			// 	a.click();
+			// };
+			// img.src = url;
+
+		})
+	})
 }
 
 function newcalendar() {
@@ -479,6 +538,36 @@ function scrollright() {
 	displaySearchResults(true);
 }
 
+function showMenu() {
+	d3.select("#menumodal").style("display", "");
+	d3.select("#modal_background").style("display", "");
+	modalmenuTether.position();
+}
+
+function hideModals() {
+	d3.select("#modal_background").style("display", "none");
+	d3.select("#menumodal").style("display", "none");
+	d3.select("#courseexport").style("display", "none");
+}
+
+var modalmenuTether, courseexportTether;
+function activateModals() {
+	modalmenuTether = new Tether({
+		element: "#menumodal",
+		target: "#tools",
+		attachment: "top center",
+		targetAttachment: "bottom right",
+		offset: "-10px 0"
+	});
+	courseexportTether = new Tether({
+		element: "#courseexport",
+		target: "#tools",
+		attachment: "top right",
+		targetAttachment: "bottom right",
+		offset: "-25px -25px"
+	});
+}
+
 function readJson(filename) {
 	return new Promise(function(fulfill, reject) {
 		d3.json("../courses/" + filename, function(e, d){
@@ -514,13 +603,16 @@ export function init(testing) {
 		calendars[0].draw();
 		d3.select("#searchbox").on("keyup", searchbox);
 		d3.select("#showconflicts").on("click", function(){displaySearchResults(true);});
-		d3.select("#export").on("click", function(){exportCourseNumbers();});
+		d3.select("#exportbutton").on("click", function(){exportCourseNumbers();});
 		d3.select("#clone").on("click", function(){clonecalendar();});
 		d3.select("#delete").on("click", function(){askremove(calendars[active])});
 		d3.select("#prev").on("click", function(){scrollleft();});
 		d3.select("#next").on("click", function(){scrollright();});
-		// d3.select("#new").on("click", function(){newcalendar();});
 		d3.select("#new").on("click", newcalendar);
+		d3.select("#tools").on("click", showMenu);
+		d3.select("#saveasimgbutton").on("click", exportImage);
+		d3.select("#modal_background").on("click", hideModals);
+		activateModals();
 	}).catch(function(error) {
 		throw new Error(error);
 	});
