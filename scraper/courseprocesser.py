@@ -20,8 +20,8 @@ Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
 DIRNAME   = os.path.dirname(os.path.abspath(__file__)) + "/"
-SOURCEDIR = "fall2016out/raw/"
-OUTPUTDIR = "fall2016out/permajor/"
+SOURCEDIR = "spring2017out/raw/"
+OUTPUTDIR = "spring2017out/permajor/"
 
 # s is a set
 def addWordsToSet(line, s):
@@ -78,7 +78,13 @@ def processcourse(course):
         tag.unwrap();
 
     course["name"]  = re.search(r"[\w]+-[\w]+\s+[\w]+", course["header"]).group(0)
-    course["title"] = course["header"].split(course["name"] + " ")[1]
+    # print(course["header"].split(course["name"] + " "), course["name"])
+    try:
+        course["title"] = course["header"].split(course["name"] + " ")[1]
+    except IndexError as e:
+        course["title"] = course["header"].split(course["name"])[1]
+    except:
+        raise e
     # A dirty hack to easily find the innermost <td>s
     cmps = soup("td", style="background-color: white; font-family: arial; font-size: 12px;")
     course["components"] = []

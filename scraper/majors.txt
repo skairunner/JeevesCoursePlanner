@@ -1,3 +1,6 @@
-Business and Finance (BUSF-SHU)
-Chinese Language (CHIN-SHU)
-Computer Science (CSCI-SHU)
+Media, Culture, 
+Neural Science (NEUR-SHU)
+Physics (PHYS-SHU)
+Religious Studies (RELS-SHU)
+Social Impact (SOIM-SHU)
+Social and Cultural Analysis (SCA-SHU)

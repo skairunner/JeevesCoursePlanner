@@ -41,7 +41,7 @@ driver.switch_to_frame("TargetContent")
 
 # We are now in the albert course search.
 checkbox = WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_FALL"))
+        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_SPRING"))
     ) # selects the semester
 checkbox.click()
 time.sleep(5)
@@ -65,6 +65,12 @@ time.sleep(5)
 
 links = []
 # On second thought, don't need to select the school.
+# unless i only want nyu shanghai's
+select = Select(driver.find_element_by_id('NYU_CLS_WRK2_DESCR254$33$'))
+# select by visible text
+select.select_by_visible_text('NYU Shanghai')
+time.sleep(5)
+
 for tag in driver.find_elements_by_tag_name("a"):
     tagid = tag.get_attribute("id")
     if "LINK" in tagid:
@@ -74,5 +80,5 @@ with open("possiblemajors.txt", "w") as f:
     for link in links:
             f.write(link + "\n")
 # subprocess.call(["chown", "skyrunner", DIRNAME + "possiblemajors.txt"])
-print "Done."
+print("Done.")
 driver.close()
