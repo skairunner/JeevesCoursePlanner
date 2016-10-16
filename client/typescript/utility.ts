@@ -229,3 +229,7 @@ export function isNull(thing) {
 export function identity<T>(thing:T) {
 	return thing;
 }
+
+export function sanitizeForSelector(text:string){
+	return text.replace(/[ .]/gi, "_");
+}

@@ -174,7 +174,7 @@ export class Calendar {
 							.attr("fill", function(d){return d.color;})
 							.attr("width", function(d){return dayscale.rangeBand();})
 							.attr("transform", function(d){return "translate(" + dayscale(d.day) + "," + d.topY + ")";})
-							.on("click", function(d,i){console.log(calendar);removeCourseBlock(d.coursedata, i, calendar);})
+							.on("click", function(d,i){removeCourseBlock(d.coursedata, i, calendar);})
 						.transition()
 							.ease(TTy())
 							.duration(TT())

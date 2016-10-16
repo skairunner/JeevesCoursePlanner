@@ -47,7 +47,7 @@ var searchboxTimeout = null;
 // Takes the list of required components from course, and compares it
 // vs selected components. If not completely fulfilled, return
 // the components that need to be selected still.
-// sectionsSelected should a list of the actual components.
+// sectionsSelected should be a list of the actual components.
 function satisfiedCourseRequirements(courseinfo:CourseClasses.Course, sectionsSelected:CourseClasses.SelectedCourse[]) {
 	var reqs = courseinfo.requiredcomponents;
 	var components:string[] = [];
@@ -94,7 +94,7 @@ function filterintersect(f1:SearchResult[], f2:SearchResult[]) {
 	var f2Len = f2.length;
 	for (var i = 0; i < f1Len; i++) {
 		for (var z = 0; z < f2Len; z++) {
-			if (f1[0].coursename == f2[z].coursename) {
+			if (f1[i].coursename == f2[z].coursename) {
 				var result = new SearchResult(f1[i].coursename, f1[i].priority);
 				result.priority = max(f1[i].priority, f2[z].priority);
 				ret.push(result);
@@ -106,7 +106,7 @@ function filterintersect(f1:SearchResult[], f2:SearchResult[]) {
 }
 
 // Combines the various filters and displays the results in the search area.
-function displaySearchResults(includeActive:boolean) {
+function displaySearchResults(includeActive:boolean, scrollTo:string) {
 	// filters looks like [[filter, [results]], [filter2, results2]]
 	var results = filters.map(function(filter){
 			return filter.results;
@@ -153,7 +153,7 @@ function displaySearchResults(includeActive:boolean) {
 			return null;
 		}
 		var sections = courseinfo.components.filter(function(comp){
-			if (stillrequired.indexOf(comp.componentType) == -1) { // discard it if the component type has already been picked
+			if (stillrequired.indexOf(comp.componentType) < 0) { // discard it if the component type has already been picked
 				return false;
 			}
 			return true;
@@ -172,7 +172,6 @@ function displaySearchResults(includeActive:boolean) {
 			filteredcourseids = filteredcourses.map(function(d){
 				return d.coursenumber;
 			});
-			console.log(filteredcourseids)
 		}
 		if (sections.length == 0) return null;
 		let out:[string, CourseClasses.CourseComponent[], number[]] = [code, sections, filteredcourseids];
@@ -183,8 +182,21 @@ function displaySearchResults(includeActive:boolean) {
 	finalcoursecodes = finalcoursecodes.filter(utility.isNull);
 	// each component needs its own entry.
 	d3.select('#searchresults').html('').selectAll(".courseholder").data(finalcoursecodes).enter()
-		.append("div").classed("courseholder",true).each(resultFormatter);
+		.append("div").classed("courseholder",true).attr("id", function(d){
+			return utility.sanitizeForSelector(d[0]);
+		})
+		.each(resultFormatter);
 	
+	// scroll to last selected course if possible
+	if (scrollTo != undefined) {
+		let el = document.getElementById(scrollTo);
+		if (el != null) {
+			let offsettop = el.offsetTop;
+			console.log(offsettop, el.clientHeight, document.getElementById("searchresults").scrollTop)
+			document.getElementById("searchresults").scrollTop = offsettop - el.clientHeight;
+		}			
+	}
+
 	// get number of child nodes. If zero, add a message.
 	decideNothingMessage(d3.select("#searchresults"));
 }
@@ -341,7 +353,7 @@ function setFilterTo(filter) {
 		.datum(filter)
 		.classed("filter", true)
 		.html("<span class=\"x\">&#10005;</span>" + filter).on("click", removefilter);
-	displaySearchResults(false);
+	displaySearchResults(false, undefined);
 	decideNothingMessage(d3.select("#searchresults"));
 }
 
@@ -391,7 +403,7 @@ function removefilter(d, i:number) {
 	}
 	filters.splice(index, 1);
 	d3.select(this).remove();
-	displaySearchResults(true);
+	displaySearchResults(true, undefined);
 }
 
 function searchbox(){
@@ -402,12 +414,12 @@ function searchbox(){
 			setFilterIfSpaces(); // move from activefilter to filterlist
 			activefilter.results = search(activefilter.raw);
 			setFilter();
-			displaySearchResults(false);
+			displaySearchResults(false, undefined);
 		} else {
 			searchboxTimeout = window.setTimeout(function(){
 				setFilterIfSpaces();
 				activefilter.results = search(activefilter.raw);
-				displaySearchResults(true);
+				displaySearchResults(true, undefined);
 			}, 100);
 		}
 	}
@@ -416,7 +428,7 @@ function searchbox(){
 function addToCourses(code, sectionindex, sectiondata) {
 	var courseprofile = new CourseClasses.SelectedCourse(coursecatalogue.table[code], sectionindex);
 	calendars[active].courses.push(courseprofile);
-	displaySearchResults(true); // because need to update conflicting stuff
+	displaySearchResults(true, utility.sanitizeForSelector(code)); // because need to update conflicting stuff
 	calendars[active].draw();
 }	
 
@@ -484,7 +496,7 @@ function newcalendar() {
 	new Draw.Calendar(calendars);
 	Draw.transitionViewTo(calendars.length-1, calendars);
 	active = calendars.length - 1;
-	displaySearchResults(true);
+	displaySearchResults(true, undefined);
 }
 
 function clonecalendar() {
@@ -498,7 +510,7 @@ function clonecalendar() {
 	calendars[calendars.length-1].draw();
 	Draw.transitionViewTo(calendars.length-1, calendars);
 	active = calendars.length - 1;
-	displaySearchResults(true);
+	displaySearchResults(true, undefined);
 }
 
 function resetremovebutton(target:d3.Selection<any>) {
@@ -530,21 +542,21 @@ function removecalendar(d:Draw.Calendar, target:d3.Selection<any>) {
 	if (active >= calendars.length-1) active = calendars.length - 2;
 	if (active < 0) active = 0;
 	d.delete(calendars, active);
-	displaySearchResults(true);
+	displaySearchResults(true, undefined);
 }
 
 function scrollleft() {
 	active = active - 1;
 	if (active < 0) active = 0;
 	Draw.transitionViewTo(active, calendars);
-	displaySearchResults(true);
+	displaySearchResults(true, undefined);
 }
 
 function scrollright() {
 	active = active + 1;
 	if (active >= calendars.length) active = calendars.length - 1;
 	Draw.transitionViewTo(active, calendars);
-	displaySearchResults(true);
+	displaySearchResults(true, undefined);
 }
 
 function showMenu() {
@@ -611,7 +623,7 @@ export function init(testing) {
 		new Draw.Calendar(calendars);
 		calendars[0].draw();
 		d3.select("#searchbox").on("keyup", searchbox);
-		d3.select("#showconflicts").on("click", function(){displaySearchResults(true);});
+		d3.select("#showconflicts").on("click", function(){displaySearchResults(true, undefined);});
 		d3.select("#exportbutton").on("click", function(){exportCourseNumbers();});
 		d3.select("#clone").on("click", function(){clonecalendar();});
 		d3.select("#delete").on("click", function(){askremove(calendars[active])});
