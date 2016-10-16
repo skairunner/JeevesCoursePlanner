@@ -289,7 +289,7 @@ function updateCreditsTotal(obj:Calendar) {
 	}
 
 	d3.select("#credits").datum(credits).transition().duration(TT())
-		.ease(TTy()).tween('text', function(){return utility.tweenText;});
+		.ease(TTy()).tween('text', utility.tweenText;
 }
 
 function removeCourseBlock(d:CourseClasses.SelectedCourse, i:number, obj: Calendar) {
