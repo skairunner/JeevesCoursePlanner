@@ -147,40 +147,42 @@ export class Calendar {
 			});
 		let allcourses_enter = allcourses.enter().append("g").classed("classblock", true);
 		let calendar = this;
+
 		// rectangle drawing
-		allcourses_enter.append("g").classed("rectholder", true)
-						.selectAll(".rect").data(function(d:CourseClasses.SelectedCourse){
-							let out:{topY:number, botY:number, height:number, day:string, coursedata:CourseClasses.SelectedCourse, color:string}[] = [];
+		let allrects = allcourses_enter.append("g").classed("rectholder", true)
+						.selectAll("rect").data(function(d:CourseClasses.SelectedCourse, i){
+							let out:{day:string,time:CourseClasses.CourseTime, coursedata:CourseClasses.SelectedCourse, color:string}[] = [];
 							let rectcolor = colors.pickColor(d.course.name, d.component.section);
 							for (let j = 0; j < d.component.classtimes.length; j++) {
 								let time = d.component.classtimes[j];
-								let topY = timescale(time.starttime.toDate());
-								let botY = timescale(time.endtime.toDate());
 								let rect = {
-									topY: topY,
-									botY: botY,
-									height: botY - topY,
+									time:time,
 									day:time.getDayName(),
 									coursedata: d,
 									color:rectcolor
 								};
 								out.push(rect);
 							}
+							console.log(out)
 							return out;
 						})
-						.enter()
+					.enter()
 						.append("rect")
-							.attr("height", function(d){return d.height/2;}) // half, & transition to full size
+							.attr("height", function(d){return (timescale(d.time.endtime.toDate()) - timescale(d.time.starttime.toDate()))/2; }) // half, & transition to full size
 							.attr("fill", function(d){return d.color;})
 							.attr("width", function(d){return dayscale.rangeBand();})
-							.attr("transform", function(d){return "translate(" + dayscale(d.day) + "," + d.topY + ")";})
-							.on("click", function(d,i){removeCourseBlock(d.coursedata, i, calendar);})
-						.transition()
-							.ease(TTy())
-							.duration(TT())
-							.attr("height", function(d){return d.height;});
+							.on("click", function(d,i){removeCourseBlock(d.coursedata, i, calendar);});
+				
+		allcourses.selectAll("rect").attr("transform", function(d){return "translate(" + dayscale(d.day) + "," + timescale(d.time.starttime.toDate()) + ")";})
+				.transition()
+					.ease(TTy())
+					.duration(TT())
+					.attr("height", function(d){return timescale(d.time.endtime.toDate()) - timescale(d.time.starttime.toDate());}); // must recalculate height
 
 		// Text
+		// first the things that only need to be added once.
+
+
 		allcourses_enter.append("g").classed("textholder", true)
 						.selectAll(".blocktext").data(function(d:CourseClasses.SelectedCourse){ // one for each classtime
 							let out:{selected:CourseClasses.SelectedCourse, time:CourseClasses.CourseTime}[] = [];
@@ -197,10 +199,9 @@ export class Calendar {
 						.append("g")
 						.classed("blocktext", true)
 						// common translation amount for all lines of text in one box
-						.attr("transform", function(d){return "translate(" + dayscale(d.time.getDayName()) + "," + timescale(d.time.starttime.toDate()) + ")"; })
 						.selectAll("text")
 						.data(function(d:{selected:CourseClasses.SelectedCourse, time:CourseClasses.CourseTime}){ // the output is array of four or five lines of text
-							let out:{text:string, fontsize:number, boxheight:number}[] = [];
+							let out:{text:string, fontsize:number, time:CourseClasses.CourseTime}[] = [];
 							let lines = [
 								d.selected.course.name + "-" + d.selected.sectionid,
 								d.selected.course.title,
@@ -223,7 +224,7 @@ export class Calendar {
 								out.push({
 									text:text,
 									fontsize:utility.findTextWidth(text, "Open Sans", dayscale.rangeBand()),
-									boxheight:dY
+									time:d.time
 								});
 							}
 
@@ -231,7 +232,6 @@ export class Calendar {
 						})
 						.enter()
 						.append("text")
-							.attr("y", function(d, i){return (i+1) * d.boxheight/5.2/2;})
 							.style("font-size", function(d){return d.fontsize + "px";})
 							.classed("mousepassthru", function(d,i){
 								return i != 1;
@@ -240,20 +240,26 @@ export class Calendar {
 								if (i==1) return d.text.substr(0, TEXTTRUNLEN);
 								return d.text;
 							})
-						.on("mouseover", function(d:{text:string, fontsize:number, boxheight:number}, i:number){
+				  			.attr("y", function(d, i){return (i+1) * (timescale(d.time.endtime.toDate()) - timescale(d.time.starttime.toDate()))/5.2/2;})
+						.on("mouseover", function(d, i:number){
 							if (i == 1) d3.select(this).text(d.text);
 						})
 						.on("mouseout", function(d, i){
 							if (i == 1) d3.select(this).text(d.text.substr(0, TEXTTRUNLEN));
-						})
-						.transition()
-							.ease(TTy())
-							.duration(TT())
-							.attr("y", function(d, i){return (i+1) * d.boxheight / 5.2});
-		
-		/*.each(function(d,i){
-			drawCourseBlock(d, this, i, self);
-		});*/
+						});
+
+		allcourses.selectAll(".blocktext")
+				  .attr("transform", function(d){return "translate(" + dayscale(d.time.getDayName()) + "," + timescale(d.time.starttime.toDate()) + ")"; });
+		allcourses.selectAll(".blocktext")
+				  .selectAll("text")
+				  .transition()
+					.ease(TTy())
+					.duration(TT())
+					.attr("y", function(d, i){
+						console.log()
+						return (i+1) * ((timescale(d.time.endtime.toDate()) - timescale(d.time.starttime.toDate()))/5.2);
+					});
+
 		var exit = allcourses.exit();
 		// there are nodes to remove
 		if (exit[0].length != 0) {
