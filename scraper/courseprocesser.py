@@ -113,6 +113,7 @@ def processcourse(course):
             for n in range(len(lines[s])):
                 if "Topic:" in lines[s][n]:
                     component["topic"] = lines[s][n].text.split("Topic: ")[-1]
+                    print(component["topic"])
                     break
 
         flattened = stringFromTags(lines[s])
@@ -142,7 +143,10 @@ def processcourse(course):
         for i in range(s+3, len(lines)):
             flattened = stringFromTags(lines[i])
             if "Notes:" in flattened:
-                component["notes"] = flattened.split("Notes:")[1].strip()
+                if "notes" in component:
+                    component["notes"] += "\n" + flattened.split("Notes:")[1].strip()
+                else:
+                    component["notes"] = flattened.split("Notes:")[1].strip()
                 notes.append(component["notes"])
             else:
                 # possibly a date.
@@ -161,6 +165,10 @@ def processcourse(course):
                     # extract the times
                     times = re.search(r"((\w{3},?)+) (\d{1,2})\.(\d{2}) (\w{2}) - (\d{1,2})\.(\d{2}) (\w{2})", flattened)
                     if times:
+                        if "notes" in component:
+                            component["notes"] += "\n" + times.group(0)
+                        else:
+                            component["notes"] = times.group(0)
                         if "classtimes" not in component:
                             component["classtimes"] = []
                         startdays = times.group(1)
