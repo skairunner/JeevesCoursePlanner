@@ -208,6 +208,9 @@ export class Calendar {
 								d.time.formattedString(),
 								d.selected.component.componentType
 							];
+							if (d.selected.component.topic) {
+								lines[1] = d.selected.component.topic;
+							}
 
 							for (let j = 0; j < lines.length; j++) {
 								let topY = timescale(d.time.starttime.toDate());

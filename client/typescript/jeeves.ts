@@ -158,14 +158,24 @@ function displaySearchResults(includeActive:boolean) {
 			}
 			return true;
 		});
+		var filteredcourseids:number[];
 		// If showconflicts is false, filter out those that conflict timewise
 		if (!d3.select("#showconflicts").property("checked")) {
 			sections = sections.filter(function(section){
 				return !timeCollides(section, calendars[active].courses);
 			});
+			filteredcourseids = [];
+		} else {
+			let filteredcourses = sections.filter(function(section){
+				return timeCollides(section, calendars[active].courses);
+			});
+			filteredcourseids = filteredcourses.map(function(d){
+				return d.coursenumber;
+			});
+			console.log(filteredcourseids)
 		}
 		if (sections.length == 0) return null;
-		let out:[string, CourseClasses.CourseComponent[]] = [code, sections];
+		let out:[string, CourseClasses.CourseComponent[], number[]] = [code, sections, filteredcourseids];
 		return out;
 	});
 
@@ -183,7 +193,7 @@ function displaySearchResults(includeActive:boolean) {
 function expandOrContractText(d:[string, CourseClasses.CourseComponent[]], i:number) {
 	var me = d3.select(this);
 	var text = d3.select(this.parentNode).select(".desctext");
-	var fulldesc = coursecatalogue[me.datum()[0]].desc;
+	var fulldesc = coursecatalogue.table[me.datum()[0]].desc;
 	if (me.text() == "▸") {
 		me.text("▾");
 		text.text(fulldesc);
@@ -194,9 +204,10 @@ function expandOrContractText(d:[string, CourseClasses.CourseComponent[]], i:num
 }
 
 // Draws courses and components
-function resultFormatter(d, i:number) {
+function resultFormatter(d:[string, CourseClasses.CourseComponent[], number[]], i:number) {
 	var classcode:string = d[0];
 	var sectiondata:CourseClasses.CourseComponent[] = d[1];
+	var filtered:number[] = d[2];
 	var selection = d3.select(this);
 	var data:CourseClasses.Course = coursecatalogue.table[classcode];
 
@@ -223,9 +234,6 @@ function resultFormatter(d, i:number) {
 	sections.append("span").classed("sectionnum", true).text(function(d){
 		return "Section " + d.section;
 	});
-	sections.append("span").classed("sectiontype", true).text(function(d){
-		return d.componentType;
-	});
 	sections.append("span").classed("units", true).text(function(d){
 		var units = d.units;
 		if (units === undefined) {
@@ -234,7 +242,22 @@ function resultFormatter(d, i:number) {
 		return d.units + " units";
 	});
 	sections.append("div").classed("details", true).text(function(d) {
+		if (d.topic) {
+			return d.topic + "\n" + d.notes;
+		}
 		return d.notes;
+	});
+
+	sections.classed("conflicting", function(d:CourseClasses.CourseComponent){
+		if (filtered.indexOf(d.coursenumber) >= 0) {
+			return true;
+		}
+		return false;
+	}).attr("title", function(d:CourseClasses.CourseComponent){
+		if (filtered.indexOf(d.coursenumber) >= 0) {
+			return "This class conflicts with an already selected course!";
+		}
+		return "";
 	});
 }
 
@@ -433,7 +456,6 @@ function exportImage() {
 			var svg2 = document.querySelector('#calendarsvg').cloneNode(true);
 			let css = document.createElement("style");
 			css.innerHTML = "/* <![CDATA[ */" + fontcss + jeevescss + "/* ]]> */";
-			console.log(css);
 			svg2.appendChild(css);
 			// var svgString = new XMLSerializer().serializeToString(document.querySelector('#calendarsvg'));
 			var svgString = new XMLSerializer().serializeToString(svg2);
@@ -444,29 +466,16 @@ function exportImage() {
 			var svg = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
 			var url = DOMURL.createObjectURL(svg);
 			let img = document.createElement("img");
-			img.width = 880; img.height = 880;
+			img.width = 820; img.height = 820;
 			img.src = url;
 			img.onload = function() {
 				ctx.drawImage(img, 10, 100, 810, 810);
-				document.querySelector("body").appendChild(canvas);
 				let imgdata = canvas.toDataURL();
 				let a = document.createElement("a");
 				a.download = "schedule.png";
 				a.href = imgdata;
 				a.click();
 			}
-
-			// d3.select("body").append("img").attr("src", url);
-
-			// img.src = url;
-			// img.onload = function() {
-			// 	var a = document.createElement("a");
-			// 	a.download = "sample.png";
-			// 	a.href = url;
-			// 	a.click();
-			// };
-			// img.src = url;
-
 		})
 	})
 }

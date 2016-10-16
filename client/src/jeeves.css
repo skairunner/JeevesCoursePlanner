@@ -237,3 +237,18 @@ input[type="button"].button-warning {
 #courseexport {
 
 }
+
+.conflicting {
+	background: repeating-linear-gradient(
+		135deg,
+		rgba(255, 0, 0, 0.6),
+		rgba(255, 0, 0, 0.6) 10px,
+		rgba(255, 0, 0, 0.8) 10px,
+		rgba(255, 0, 0, 0.8) 20px
+	);
+	color: #fff;
+}
+
+.sectionnum,.header {
+	font-weight: 600;
+}
