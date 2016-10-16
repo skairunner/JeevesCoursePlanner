@@ -21,7 +21,7 @@ function reassignIndexes(calendars: Calendar[]) {
 		calendars.forEach(function(d, i){
 		var oldsel = d.selector;
 		d.selector = "#cal" + i;
-		d.axisorigin = "translate(" + (50+i*calendarwidth) + ",40)";
+		d.axisorigin = "translate(" + (50+i*calendarwidth) + ",-70)";
 		d.moveToNewSelector(d, oldsel);
 		return d;
 	});
