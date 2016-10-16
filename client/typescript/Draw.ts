@@ -43,7 +43,7 @@ export class Calendar {
 		this.selector   = "#cal" + calendars.length;
 		this.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",-70)";
 		this.courses    = [];
-		this.colors     = new utility.ColorPicker();
+		this.colors     = new utility.LimitedColorPicker();
 		this.master     = calendars;
 		this.timescale  = d3.time.scale().domain([new Date(2015, 10, 14, 8, 0), new Date(2015, 10, 14, 18, 0)]);
 		this.timescale.range([0, 650]);

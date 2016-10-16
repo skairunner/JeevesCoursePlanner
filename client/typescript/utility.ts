@@ -111,7 +111,48 @@ export class ColorScale {
 	}
 }
 
-export class ColorPicker {
+export class LimitedColorPicker {
+	S:number;
+	colorset:string[];
+	colorscales:any;
+
+	constructor(){
+		this.colorset = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd','#ccebc5','#ffed6f'];
+		this.S = Math.floor(Math.random() * this.colorset.length); 
+		this.colorscales = {};
+	}
+
+	pickColor(coursecode:string, sectionid: string) {
+		if (coursecode in this.colorscales) {
+			let scale:ColorScale = this.colorscales[coursecode];
+			return scale.get(sectionid);
+		}
+		// allocate a new number
+		let color = this.colorset[this.S];
+		this.S += 1;
+		if (this.S >= this.colorset.length) {
+			this.S = 0;
+		}
+		this.colorscales[coursecode] = new ColorScale(color, 8);
+		return this.colorscales[coursecode].get(sectionid);
+	}
+
+	copy() {
+		let out = new LimitedColorPicker();
+		out.S = this.S;
+		for(let coursecode in this.colorscales) {
+			out.colorscales[coursecode] = this.colorscales[coursecode].copy();
+		}
+		return out
+	}
+}
+
+export interface ColorPicker {
+	pickColor(coursecode:string, sectionid:string):string;
+	copy():ColorPicker; 
+}
+
+export class HSBColorPicker {
 	colorscales:any;
 	H:number; // the degrees on the HSL scale.
 
@@ -135,7 +176,7 @@ export class ColorPicker {
 	}
 
 	copy() {
-		let out = new ColorPicker();
+		let out = new HSBColorPicker();
 		out.H = this.H;
 		for(let coursecode in this.colorscales) {
 			out.colorscales[coursecode] = this.colorscales[coursecode].copy();
