@@ -27,14 +27,19 @@ def dumpJson(obj, subdir, fname):
     with open(DIRNAME + "/" + fname, "w") as f:
         json.dump(obj, f)
 
+#driver = webdriver.Firefox()
+# phantomjs_path = "C:\coding\JeevesCoursePlanner\scraper\phantomjs.exe"
+#driver = webdriver.PhantomJS(executable_path=phantomjs_path, service_log_path=os.path.devnull)
+#driver.set_window_size(1400, 1000)
 driver = webdriver.Firefox()
+
 driver.get("http://albert.nyu.edu/course-finder")
 driver.select = driver.find_element_by_css_selector # too wordy
 
-timeout = 60
+timeout = 30
 
 coursesearchlink = WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.XPATH, """//*[@id="NYU_PUBLIC_ALBERT_PW_HMPG_Data"]/div/table/tbody/tr/td/table/tbody/tr[1]/td/table/tbody/tr/td/table/tbody/tr/td[2]/a"""))
+        EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, "Course Search"))
     )
 coursesearchlink.click()
 
@@ -76,13 +81,17 @@ for subject in selectables:
     outdict[subject] = {}
 
     # Click on the subject link
-    link = WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, subject))
-    )
-    link.click()
-    WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.ID, "NYU_CLS_WRK_DESCR100"))
-    ) # wait for the new page to load
+    try:
+        link = WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.PARTIAL_LINK_TEXT, subject))
+        )
+        link.click()
+        WebDriverWait(driver, timeout).until(
+            EC.presence_of_element_located((By.ID, "NYU_CLS_WRK_DESCR100"))
+        ) # wait for the new page to load
+    except Exception as e:
+        driver.save_screenshot('screenshot.png')
+        raise e
     trianglebuttons = driver.find_elements_by_class_name("PSHYPERLINK")
     internalIDs = []
     for button in trianglebuttons:

@@ -11,12 +11,7 @@ import subprocess
 import os
 
 """
-This file uses Selenium and Firefox Webdriver to scrape all course data for 
-NYU Shanghai from Albert Course Finder into a json file. Further processing
-via courseprocessor.py is highly recommended.
-
-While the final result is put into courses.json, a json file is made for
-each major, in out/. 
+Scrapes major names.
 """
 
 DIRNAME = os.path.dirname(os.path.abspath(__file__)) + "/"
@@ -41,7 +36,7 @@ driver.switch_to_frame("TargetContent")
 
 # We are now in the albert course search.
 checkbox = WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_SPRING"))
+        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_FALL"))
     ) # selects the semester
 checkbox.click()
 time.sleep(5)
@@ -67,7 +62,7 @@ links = []
 # On second thought, don't need to select the school.
 # unless i only want nyu shanghai's
 select = Select(driver.find_element_by_id('NYU_CLS_WRK2_DESCR254$33$'))
-# select by visible text
+#select by visible text
 select.select_by_visible_text('NYU Shanghai')
 time.sleep(5)
 

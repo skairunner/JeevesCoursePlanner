@@ -3,6 +3,10 @@ spring2016out
 client/src/*.json
 client/src/*.js
 client/src/*.js.map
+client/courses/
+scraper/fall*
+scraper/spring*
+nginx/
 *.7z
 chromedriver
 pass
