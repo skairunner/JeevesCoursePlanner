@@ -10,7 +10,7 @@ var Promise = e6promise.Promise;
 class Filter {
 	raw:string; // the actual filter. eg "computer science"
 	results:SearchResult[];
-	
+
 	constructor() {
 		this.raw = "";
 		this.results = [];
@@ -140,7 +140,7 @@ function displaySearchResults(includeActive:boolean, scrollTo:string) {
 	} else {
 		intersection = [];
 	}
- 
+
 
 	var finalcoursecodes = intersection.map(function(result){
 		var code = result.coursename;
@@ -186,7 +186,7 @@ function displaySearchResults(includeActive:boolean, scrollTo:string) {
 			return utility.sanitizeForSelector(d[0]);
 		})
 		.each(resultFormatter);
-	
+
 	// scroll to last selected course if possible
 	if (scrollTo != undefined) {
 		let el = document.getElementById(scrollTo);
@@ -194,7 +194,7 @@ function displaySearchResults(includeActive:boolean, scrollTo:string) {
 			let offsettop = el.offsetTop;
 			console.log(offsettop, el.clientHeight, document.getElementById("searchresults").scrollTop)
 			document.getElementById("searchresults").scrollTop = offsettop - el.clientHeight;
-		}			
+		}
 	}
 
 	// get number of child nodes. If zero, add a message.
@@ -229,7 +229,7 @@ function resultFormatter(d:[string, CourseClasses.CourseComponent[], number[]], 
 	var span = selection.append("span").classed("desc", true);
 	if (data.desc.length > 100) {
 		span.append("span").classed("expandable", true).on("click", expandOrContractText).text("▸");
-		span.append("span").classed("desctext", true).text(data.desc.substring(0,100) + "...");	
+		span.append("span").classed("desctext", true).text(data.desc.substring(0,100) + "...");
 	} else {
 		span.append("span").classed("desctext", true).text(data.desc);
 	}
@@ -295,13 +295,13 @@ function decideNothingMessage(selection){
 		if (d3.select(selection[0][0].childNodes[0]).attr("id") != "nothingmsg") {
 			return;
 		}
-	} 
+	}
 
 	var thing = selection.select("#nothingmsg");
 	var msg = "";
 	if (thing[0][0] == null) {
 		thing = selection.append("span").attr("id", "nothingmsg");
-	} 
+	}
 
 	if (filters.length == 0) {
 		msg = "Enter something to get started!";
@@ -409,8 +409,9 @@ function removefilter(d, i:number) {
 function searchbox(){
 	if(coursecatalogue) {
 		activefilter.raw = this.value;
-		clearTimeout(searchboxTimeout);	
-		if (event.keyCode == 13) {// 'enter'
+		clearTimeout(searchboxTimeout);
+		this.event = event as KeyboardEvent;
+		if (this.event.keyCode == 13) {// 'enter'
 			setFilterIfSpaces(); // move from activefilter to filterlist
 			activefilter.results = search(activefilter.raw);
 			setFilter();
@@ -430,7 +431,21 @@ function addToCourses(code, sectionindex, sectiondata) {
 	calendars[active].courses.push(courseprofile);
 	displaySearchResults(true, utility.sanitizeForSelector(code)); // because need to update conflicting stuff
 	calendars[active].draw();
-}	
+
+	updateURLExport();
+}
+
+function updateURLExport() {
+	var exportArray = [];
+	for (var i = 0; i < calendars[active].courses.length; i++) {
+
+		exportArray.push([
+			calendars[active].courses[i].course.name,
+			calendars[active].courses[i].sectionid
+		]);
+	}
+	window.location.hash = btoa(JSON.stringify(exportArray));
+}
 
 //////////////////////////////
 
@@ -474,7 +489,7 @@ function exportImage() {
 			var canvas = document.createElement("canvas");
 			canvas.width = 880; canvas.height = 880;
 			var ctx = canvas.getContext("2d");
-			var DOMURL = self.URL || self.webkitURL || self;
+			var DOMURL = self.URL || (self as any).webkitURL || self;
 			var svg = new Blob([svgString], {type: "image/svg+xml;charset=utf-8"});
 			var url = DOMURL.createObjectURL(svg);
 			let img = document.createElement("img");
@@ -497,6 +512,7 @@ function newcalendar() {
 	Draw.transitionViewTo(calendars.length-1, calendars);
 	active = calendars.length - 1;
 	displaySearchResults(true, undefined);
+	updateURLExport();
 }
 
 function clonecalendar() {
@@ -511,6 +527,7 @@ function clonecalendar() {
 	Draw.transitionViewTo(calendars.length-1, calendars);
 	active = calendars.length - 1;
 	displaySearchResults(true, undefined);
+	updateURLExport();
 }
 
 function resetremovebutton(target:d3.Selection<any>) {
@@ -550,6 +567,7 @@ function scrollleft() {
 	if (active < 0) active = 0;
 	Draw.transitionViewTo(active, calendars);
 	displaySearchResults(true, undefined);
+	updateURLExport();
 }
 
 function scrollright() {
@@ -557,6 +575,7 @@ function scrollright() {
 	if (active >= calendars.length) active = calendars.length - 1;
 	Draw.transitionViewTo(active, calendars);
 	displaySearchResults(true, undefined);
+	updateURLExport();
 }
 
 function showMenu() {
@@ -634,6 +653,13 @@ export function init(testing) {
 		d3.select("#saveasimgbutton").on("click", exportImage);
 		d3.select("#modal_background").on("click", hideModals);
 		activateModals();
+		if (window.location.hash.length !== 0) {
+			// Load CourseClasses
+			var json = JSON.parse(atob(window.location.hash.substr(1)));
+			for (var key in json) {
+				addToCourses(json[key][0], json[key][1], null);
+			}
+		}
 	}).catch(function(error) {
 		throw new Error(error);
 	});

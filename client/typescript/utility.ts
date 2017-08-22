@@ -33,7 +33,7 @@ export class Time {
 		var minutes = "";
 		if (m < 1)
 			minutes = "00";
-		else if (m < 10) 
+		else if (m < 10)
 			minutes = "0" + m;
 		else
 			minutes = m.toString();
@@ -86,13 +86,13 @@ export var DayFromInt: string[] = ["Monday", "Tuesday", "Wednesday", "Thursday",
 
 export class ColorScale {
 	basecolor:string;
-	scale:d3.scale.Linear<number, string>;
+	scale:d3.scale.Linear<string, string>;
 	steps:number;
 	step:number;
 	constructor(basecolor:string, steps:number) {
 		this.steps = steps;
 		this.step = 1;
-		this.scale = d3.scale.linear().domain([0, steps]).range([basecolor, "#FFFFFF"]).interpolate(d3.interpolateLab);
+		this.scale = d3.scale.linear<string>().domain([0, steps]).range([basecolor, "#FFFFFF"]).interpolate(d3.interpolateLab);
 		this.basecolor = basecolor;
 	}
 
@@ -118,7 +118,7 @@ export class LimitedColorPicker {
 
 	constructor(){
 		this.colorset = ['#8dd3c7','#ffffb3','#bebada','#fb8072','#80b1d3','#fdb462','#b3de69','#fccde5','#d9d9d9','#bc80bd','#ccebc5','#ffed6f'];
-		this.S = Math.floor(Math.random() * this.colorset.length); 
+		this.S = Math.floor(Math.random() * this.colorset.length);
 		this.colorscales = {};
 	}
 
@@ -149,7 +149,7 @@ export class LimitedColorPicker {
 
 export interface ColorPicker {
 	pickColor(coursecode:string, sectionid:string):string;
-	copy():ColorPicker; 
+	copy():ColorPicker;
 }
 
 export class HSBColorPicker {
@@ -197,15 +197,15 @@ export function cmptime(t1: Time, t2: Time) {
 
 /**
  * Uses canvas.measureText to compute and return the width of the given text of given font in pixels.
- * 
+ *
  * @param {String} text The text to be rendered.
  * @param {String} font The css font descriptor that text is to be rendered with (e.g. "bold 14px verdana").
- * 
+ *
  * @see http://stackoverflow.com/questions/118241/calculate-text-width-with-javascript/21015393#21015393
  */
 export function getTextWidth (text, font) {
 	// re-use canvas object for better performance
-	var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+	var canvas = getTextWidth.prototype.canvas || (getTextWidth.prototype.canvas = document.createElement("canvas"));
 	var context = canvas.getContext("2d");
 	context.font = font;
 	var metrics = context.measureText(text);

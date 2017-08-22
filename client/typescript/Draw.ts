@@ -113,7 +113,7 @@ export class Calendar {
 		var timescale  = this.timescale;
 		updateCreditsTotal(this);
 
-		if (courses.length == 0){ 
+		if (courses.length == 0){
 			// reset axis to original 8 to 6
 			this.changeTimeAxis(new Date(2015, 10, 14, 8, 0)
 				, new Date(2015, 10, 14, 18, 0));
@@ -172,8 +172,8 @@ export class Calendar {
 							.attr("fill", function(d){return d.color;})
 							.attr("width", function(d){return dayscale.rangeBand();})
 							.on("click", function(d,i){removeCourseBlock(d.coursedata, i, calendar);});
-				
-		allcourses.selectAll("rect").attr("transform", function(d){return "translate(" + dayscale(d.day) + "," + timescale(d.time.starttime.toDate()) + ")";})
+
+		allcourses_enter.selectAll("rect").attr("transform", function(d){return "translate(" + dayscale(d.day) + "," + timescale(d.time.starttime.toDate()) + ")";})
 				.transition()
 					.ease(TTy())
 					.duration(TT())
@@ -248,9 +248,9 @@ export class Calendar {
 							if (i == 1) d3.select(this).text(d.text.substr(0, TEXTTRUNLEN));
 						});
 
-		allcourses.selectAll(".blocktext")
+		allcourses_enter.selectAll(".blocktext")
 				  .attr("transform", function(d){return "translate(" + dayscale(d.time.getDayName()) + "," + timescale(d.time.starttime.toDate()) + ")"; });
-		allcourses.selectAll(".blocktext")
+		allcourses_enter.selectAll(".blocktext")
 				  .selectAll("text")
 				  .transition()
 					.ease(TTy())
@@ -295,7 +295,7 @@ function updateCreditsTotal(obj:Calendar) {
 	}
 
 	d3.select("#credits").datum(credits).transition().duration(TT())
-		.ease(TTy()).tween('text', utility.tweenText;
+		.ease(TTy()).tween('text', utility.tweenText);
 }
 
 function removeCourseBlock(d:CourseClasses.SelectedCourse, i:number, obj: Calendar) {
@@ -313,7 +313,7 @@ function removeCourseBlock(d:CourseClasses.SelectedCourse, i:number, obj: Calend
 function redrawLines(axisorigin) {
 	var verticalpositions = [];
 	verticalpositions = utility.DayFromInt.map(function(day){
-		return dayscale(day) + dayscale.rangeBand();
+		return dayscale(day) as number + dayscale.rangeBand();
 	})
 	d3.select("#verticallines").selectAll(".verticalline")
 		.data(verticalpositions)
