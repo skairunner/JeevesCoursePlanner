@@ -223,7 +223,8 @@ export function findTextWidth(text: string, font, target) {
 	return size
 }
 
-export function tweenText(d): (t: number) => any {
+export function tweenText(): (t: number) => any {
+	var d = d3.select(this).datum();
 	var i = d3.interpolate(this.textContent, d);
 	return function(t) {
 		this.textContent = Math.round(i(t));
