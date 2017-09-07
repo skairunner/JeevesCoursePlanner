@@ -69,6 +69,15 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Each <a href="_draw_.calendar.html">Calendar</a> object represents the information displayed on one calendar,
+							including the courses selected and colors used to render. It also includes various d3
+						object instances, such as axes, required for rendering.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -125,13 +134,21 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L40">Draw.ts:40</a></li>
+									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L66">Draw.ts:66</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>calendars: <a href="_draw_.calendar.html" class="tsd-signature-type">Calendar</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+											<p>The master list of <a href="_draw_.calendar.html">Calendar</a>s, to be passed in by reference.
+											Is mostly used to facilitate deletion of Calendars.</p>
+										</div>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_draw_.calendar.html" class="tsd-signature-type">Calendar</a></h4>
@@ -147,9 +164,14 @@
 					<div class="tsd-signature tsd-kind-icon">axisorigin<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L34">Draw.ts:34</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L54">Draw.ts:54</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The origin of the axes, represented in CSS <code>translate()</code> format.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="colors" class="tsd-anchor"></a>
@@ -157,9 +179,14 @@
 					<div class="tsd-signature tsd-kind-icon">colors<span class="tsd-signature-symbol">:</span> <a href="../interfaces/_utility_.colorpicker.html" class="tsd-signature-type">ColorPicker</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L36">Draw.ts:36</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L58">Draw.ts:58</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The <a href="../interfaces/_utility_.colorpicker.html">ColorPicker</a> used to select colors.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="courses" class="tsd-anchor"></a>
@@ -167,9 +194,14 @@
 					<div class="tsd-signature tsd-kind-icon">courses<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="_courseclasses_.selectedcourse.html" class="tsd-signature-type">SelectedCourse</a><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L35">Draw.ts:35</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L56">Draw.ts:56</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>An array of the selected courses for this calendar.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="dayaxis" class="tsd-anchor"></a>
@@ -177,9 +209,14 @@
 					<div class="tsd-signature tsd-kind-icon">dayaxis<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Axis</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L40">Draw.ts:40</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L66">Draw.ts:66</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>d3 Axis object for rendering the day axis.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="master" class="tsd-anchor"></a>
@@ -187,9 +224,14 @@
 					<div class="tsd-signature tsd-kind-icon">master<span class="tsd-signature-symbol">:</span> <a href="_draw_.calendar.html" class="tsd-signature-type">Calendar</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L37">Draw.ts:37</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L60">Draw.ts:60</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>A reference to the global list of <a href="_draw_.calendar.html">Calendar</a>.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="selector" class="tsd-anchor"></a>
@@ -197,9 +239,14 @@
 					<div class="tsd-signature tsd-kind-icon">selector<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L33">Draw.ts:33</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L52">Draw.ts:52</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The selector for the <a href="_draw_.calendar.html">Calendar</a> on the SVG.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="timeaxis" class="tsd-anchor"></a>
@@ -207,9 +254,14 @@
 					<div class="tsd-signature tsd-kind-icon">timeaxis<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Axis</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L39">Draw.ts:39</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L64">Draw.ts:64</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>d3 Axis object for rendering the time axis.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="timescale" class="tsd-anchor"></a>
@@ -217,9 +269,14 @@
 					<div class="tsd-signature tsd-kind-icon">timescale<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Scale</span><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">, </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L38">Draw.ts:38</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L62">Draw.ts:62</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The current time-to-coordinates <a href="https://github.com/d3/d3-scale/blob/master/README.md#scaleLinear">Scale</a>.</p>
+						</div>
+					</div>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
@@ -234,16 +291,27 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L99">Draw.ts:99</a></li>
+									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L150">Draw.ts:150</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Rescale the time axis.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>timestart: <span class="tsd-signature-type">Date</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The start time of the axis.</p>
+									</div>
 								</li>
 								<li>
 									<h5>timeend: <span class="tsd-signature-type">Date</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The end time of the axis.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -260,16 +328,32 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L75">Draw.ts:75</a></li>
+									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L119">Draw.ts:119</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Remove this calendar from the list.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>todo</dt>
+									<dd><p>Figure out why function accepts <code>calendars</code> instead of using <code>master</code>.</p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>calendars: <a href="_draw_.calendar.html" class="tsd-signature-type">Calendar</a><span class="tsd-signature-symbol">[]</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>Master list of calendars.</p>
+									</div>
 								</li>
 								<li>
 									<h5>active: <span class="tsd-signature-type">number</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The calendar to focus the camera on after deletion.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -286,9 +370,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L106">Draw.ts:106</a></li>
+									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L160">Draw.ts:160</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Redraw the calendar in the SVG.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -303,9 +392,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L90">Draw.ts:90</a></li>
+									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L136">Draw.ts:136</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Make a calendar &quot;shrink&quot; via transformations, then remove it</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
@@ -320,16 +414,34 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/61f120b/client/typescript/Draw.ts#L68">Draw.ts:68</a></li>
+									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/Draw.ts#L106">Draw.ts:106</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Changes a calendar&#39;s old selector to a new one, and &quot;slide&quot;
+									the SVG representation to the new position.</p>
+								</div>
+								<dl class="tsd-comment-tags">
+									<dt>todo</dt>
+									<dd><p>Figure out why this function doesn&#39;t operate on &quot;this&quot; calendar object,
+										instead operating on a param-provided one.</p>
+									</dd>
+								</dl>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>calendar: <a href="_draw_.calendar.html" class="tsd-signature-type">Calendar</a></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The calendar to move</p>
+									</div>
 								</li>
 								<li>
 									<h5>oldsel: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>The previous selector.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
