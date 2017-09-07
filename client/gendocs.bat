@@ -1,0 +1,1 @@
+./node_modules/.bin/typedoc --out docs --mode modules typescript/ --ignoreCompilerErrors
