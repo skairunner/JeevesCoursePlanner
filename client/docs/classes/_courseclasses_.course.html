@@ -69,6 +69,15 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p><a href="_courseclasses_.course.html">Course</a> contains all the info on Albert for one course.
+							It has a list of components, each with their own set of info,
+						as well as titles and descriptions for the entire course bloc.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -113,13 +122,21 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/CourseClasses.ts#L114">CourseClasses.ts:114</a></li>
+									<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d61bb02/client/typescript/CourseClasses.ts#L181">CourseClasses.ts:181</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>jsonobj: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<div class="lead">
+											<p>The jsonobj is an Object that contains the info for this course,
+											as output by the courseprocessor file.</p>
+										</div>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="_courseclasses_.course.html" class="tsd-signature-type">Course</a></h4>
@@ -135,9 +152,14 @@
 					<div class="tsd-signature tsd-kind-icon">components<span class="tsd-signature-symbol">:</span> <a href="_courseclasses_.coursecomponent.html" class="tsd-signature-type">CourseComponent</a><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/CourseClasses.ts#L111">CourseClasses.ts:111</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d61bb02/client/typescript/CourseClasses.ts#L171">CourseClasses.ts:171</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The [[CourseComponents]] for this Course.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="desc" class="tsd-anchor"></a>
@@ -145,7 +167,7 @@
 					<div class="tsd-signature tsd-kind-icon">desc<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/CourseClasses.ts#L112">CourseClasses.ts:112</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d61bb02/client/typescript/CourseClasses.ts#L173">CourseClasses.ts:173</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -155,9 +177,14 @@
 					<div class="tsd-signature tsd-kind-icon">name<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/CourseClasses.ts#L109">CourseClasses.ts:109</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d61bb02/client/typescript/CourseClasses.ts#L167">CourseClasses.ts:167</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The name of the course. Usually formatted something like USC-GA 2919</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="requiredcomponents" class="tsd-anchor"></a>
@@ -165,9 +192,15 @@
 					<div class="tsd-signature tsd-kind-icon">requiredcomponents<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/CourseClasses.ts#L114">CourseClasses.ts:114</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d61bb02/client/typescript/CourseClasses.ts#L181">CourseClasses.ts:181</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The types of courses that exist. Eg, if a Course has both Lecture and Recitation
+							components, it is assumed that one most have both.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="searchable" class="tsd-anchor"></a>
@@ -175,9 +208,15 @@
 					<div class="tsd-signature tsd-kind-icon">searchable<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/CourseClasses.ts#L113">CourseClasses.ts:113</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d61bb02/client/typescript/CourseClasses.ts#L177">CourseClasses.ts:177</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>An index of words that appear in this Course, sanitized and deduplicated.
+							Used to facilitate searching.</p>
+						</div>
+					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
 					<a name="title" class="tsd-anchor"></a>
@@ -185,9 +224,14 @@
 					<div class="tsd-signature tsd-kind-icon">title<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d494011/client/typescript/CourseClasses.ts#L110">CourseClasses.ts:110</a></li>
+							<li>Defined in <a href="https://github.com/Skyyrunner/JeevesCoursePlanner/blob/d61bb02/client/typescript/CourseClasses.ts#L169">CourseClasses.ts:169</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>The title of the course. Something like <strong>Introduction to Psychology</strong>.</p>
+						</div>
+					</div>
 				</section>
 			</section>
 		</div>

@@ -2,6 +2,11 @@ import d3 = require("d3");
 import * as utility from "./utility";
 import * as CourseClasses from "./CourseClasses";
 
+/**
+ * Draw.ts mostly has rendering-related code, as well as some Calendar controller code.
+ */
+
+
 /**A standard scale to use for the calendar's Days.*/ 
 var dayscale = d3.scale.ordinal();
 dayscale.domain(utility.DayFromInt);

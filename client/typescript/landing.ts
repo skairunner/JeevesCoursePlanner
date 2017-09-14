@@ -1,5 +1,16 @@
+/**
+ * landing.ts is the code for the landing page of Jeeves, where
+ * you select which courses you wish to use in your calendar
+ * planning view.
+ */
+
+
 document.addEventListener("DOMContentLoaded", init);
 
+/**
+ * Initializes the page, including downloading majorcodes
+ * and setting up the UI.
+ */
 function init() {
 	d3.json("src/majorcodes.json", function(e, d){
 		// place all the choices
@@ -39,6 +50,10 @@ function init() {
 	});
 }
 
+/**
+ * Saves course selection in case user goes directly to jeeves.html,
+ * and changes window location to jeeves.html.
+ */
 function gotoJeeves() {
 	var schools = [];
 	var sel;

@@ -8,7 +8,7 @@ import * as CourseClasses from "./CourseClasses";
 var Promise = e6promise.Promise;
 
 class Filter {
-	raw:string; // the actual filter. eg "computer science"
+	raw:string; // the actual filter text. eg "computer science"
 	results:SearchResult[];
 
 	constructor() {
