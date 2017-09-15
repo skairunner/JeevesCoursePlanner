@@ -2,21 +2,38 @@ import d3 = require("d3");
 import * as utility from "./utility";
 import * as CourseClasses from "./CourseClasses";
 
+/**
+ * Draw.ts mostly has rendering-related code, as well as some Calendar controller code.
+ */
+
+
+/**A standard scale to use for the calendar's Days.*/ 
 var dayscale = d3.scale.ordinal();
 dayscale.domain(utility.DayFromInt);
 dayscale.rangeBands([0, 700], 0, 0.01);
+/**Formatter for the time labels.*/
 var tickformat = d3.time.format("%H:%M");
 
-// ugly hack to be able to call the update display function
+/**Ugly hack to allow Draw-related functions to call the update display function.
+ * At startup, `outsidefuncs` is assigned a reference to the update display function.
+ */
 export var outsidefuncs = [];
 
+/**Hardcoded SVG-space calendar width. */
 var calendarwidth = 800;
+/**Hardcoded transition time. */
 var transitiontime = 1000;
+/**Hardcoded transition easing function. */
 var transitiontype = "cubic-out";
 
+/**Shorthand for returning `transitiontime`. */
 function TT(){return transitiontime;}
+/**Shorthand for returning `transitiontype`.*/
 function TTy(){return transitiontype;}
 
+/**"Moves up" rendered calendars so that there are no gaps.
+ * Usually called after removing a calendar.
+ */
 function reassignIndexes(calendars: Calendar[]) {
 		calendars.forEach(function(d, i){
 		var oldsel = d.selector;
@@ -27,18 +44,36 @@ function reassignIndexes(calendars: Calendar[]) {
 	});
 }
 
-
+/**Hardcoded text truncation threshold for course blocks. */
 var TEXTTRUNLEN = 15;
+
+/**
+ * Each [[Calendar]] object represents the information displayed on one calendar,
+ * including the courses selected and colors used to render. It also includes various d3
+ * object instances, such as axes, required for rendering.
+ */
 export class Calendar {
+	/**The selector for the [[Calendar]] on the SVG. */
 	selector:string;
+	/**The origin of the axes, represented in CSS `translate()` format. */
 	axisorigin:string;
+	/**An array of the selected courses for this calendar. */
 	courses:Array<CourseClasses.SelectedCourse>;
+	/**The [[ColorPicker]] used to select colors. */
 	colors:utility.ColorPicker;
+	/**A reference to the global list of [[Calendar]]. */
 	master:Calendar[];
+	/**The current time-to-coordinates [Scale](https://github.com/d3/d3-scale/blob/master/README.md#scaleLinear). */
 	timescale: d3.time.Scale<number, number>;
+	/**d3 Axis object for rendering the time axis.*/
 	timeaxis: d3.svg.Axis;
+	/**d3 Axis object for rendering the day axis.*/
 	dayaxis: d3.svg.Axis;
 
+	/**
+	 * @param calendars The master list of [[Calendar]]s, to be passed in by reference.
+	 * Is mostly used to facilitate deletion of Calendars.
+	 */
 	constructor(calendars: Calendar[]){
 		this.selector   = "#cal" + calendars.length;
 		this.axisorigin = "translate(" + (50+calendars.length*calendarwidth) + ",-70)";
@@ -65,13 +100,27 @@ export class Calendar {
 		calendars.push(this);
 	}
 
+	/**
+	 * Changes a calendar's old selector to a new one, and "slide"
+	 * the SVG representation to the new position.
+	 * @todo Figure out why this function doesn't operate on "this" calendar object, 
+	 * instead operating on a param-provided one.
+	 * @param calendar The calendar to move
+	 * @param oldsel The previous selector.
+	 */
 	moveToNewSelector(calendar:Calendar, oldsel: string) {
-		d3.select(oldsel)
-			.attr("id", calendar.selector.slice(1, calendar.selector.length))
+		d3.select(oldsel) // selects the old element
+			.attr("id", calendar.selector.slice(1, calendar.selector.length)) // then replace with new one.
 			.transition().duration(TT()).ease(TTy())
 			.attr("transform", calendar.axisorigin);
 	}
 
+	/**
+	 * Remove this calendar from the list.
+	 * @todo Figure out why function accepts `calendars` instead of using `master`.
+	 * @param calendars Master list of calendars.
+	 * @param active The calendar to focus the camera on after deletion.
+	 */
 	delete(calendars: Calendar[], active: number) {
 		var i = calendars.indexOf(this);
 		calendars.splice(i, 1);
@@ -86,7 +135,9 @@ export class Calendar {
 		}, TT());
 	}
 
-	// smoothly erase calendar from svg
+	/**
+	 * Make a calendar "shrink" via transformations, then remove it
+	 */
 	erase() {
 		var svg = d3.select(this.selector);
 		svg.selectAll("*").transition()
@@ -96,6 +147,11 @@ export class Calendar {
 		window.setTimeout(function(){svg.remove();}, TT());
 	}
 
+	/**
+	 * Rescale the time axis.
+	 * @param timestart The start time of the axis.
+	 * @param timeend The end time of the axis.
+	 */
 	changeTimeAxis(timestart: Date, timeend: Date) {
 		this.timescale.domain([timestart, timeend]);
 		var sel = d3.select(this.selector).select(".timeaxis");
@@ -103,6 +159,9 @@ export class Calendar {
 			.duration(TT()).delay(0).call(this.timeaxis);
 	}
 
+	/**
+	 * Redraw the calendar in the SVG.
+	 */
 	draw() {
 		var svg        = d3.select(this.selector);
 		var axisorigin = this.axisorigin;
@@ -278,6 +337,11 @@ export class Calendar {
 	}
 }
 
+/**
+ * Smoothly change the "camera" to focus on the given calendar.
+ * @param index The index of the calendar to focus on.
+ * @param calendars The master list of calendars.
+ */
 export function transitionViewTo(index: number, calendars: Calendar[]) {
 	d3.select("#calendarsvg").transition().duration(1000)
 		.attr("viewBox", (index * calendarwidth) + " 0 800 600");
@@ -285,6 +349,10 @@ export function transitionViewTo(index: number, calendars: Calendar[]) {
 	updateCreditsTotal(calendars[index]);
 }
 
+/**
+ * Sums up the selected credits and transitions the counter's number.
+ * @param obj The calendar whose credits are to be summed.
+ */
 function updateCreditsTotal(obj:Calendar) {
 	var credits = 0;
 	for (let i = 0; i < obj.courses.length; i++) {
@@ -298,6 +366,12 @@ function updateCreditsTotal(obj:Calendar) {
 		.ease(TTy()).tween('text', utility.tweenText);
 }
 
+/**
+ * A d3 callback function to handle removal of a course on click.
+ * @param d d3 data parameter
+ * @param i d3 index parameter
+ * @param obj The calendar the course block resides in.
+ */
 function removeCourseBlock(d:CourseClasses.SelectedCourse, i:number, obj: Calendar) {
 	let newcourses:CourseClasses.SelectedCourse[] = [];
 	for (let j = 0; j < obj.courses.length; j++) {
@@ -310,7 +384,11 @@ function removeCourseBlock(d:CourseClasses.SelectedCourse, i:number, obj: Calend
 	outsidefuncs[0](true); // update search results
 }
 
-function redrawLines(axisorigin) {
+/**
+ * @deprecated #verticallines seems to be null on runtime.
+ * @param axisorigin CSS transform-formatted string
+ */
+function redrawLines(axisorigin: string) {
 	var verticalpositions = [];
 	verticalpositions = utility.DayFromInt.map(function(day){
 		return dayscale(day) as number + dayscale.rangeBand();

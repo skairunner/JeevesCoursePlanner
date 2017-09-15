@@ -5,10 +5,20 @@ import * as Draw from "./Draw";
 import * as utility from "./utility";
 import * as CourseClasses from "./CourseClasses";
 
+/**
+ * This file is the main working file of Jeeves. It may need to be split up.
+ */
+
+/**Polyfills Promise. */
 var Promise = e6promise.Promise;
 
+/**
+ * Represents the filter text and the result of a filter.
+ */
 class Filter {
-	raw:string; // the actual filter. eg "computer science"
+	/**The filter text, eg "computer" */
+	raw:string;
+	/**All [[SearchResult]]s that match the filter. */
 	results:SearchResult[];
 
 	constructor() {
@@ -18,36 +28,35 @@ class Filter {
 }
 
 ///////
-var calendars: Draw.Calendar[] = []; // a list of all calendar datas.
+/**Master list of all calendar data */
+var calendars: Draw.Calendar[] = [];
+/**The index of the current active calendar. */
 var active = 0;
-
+/**All courses to be used in this session. */
 var coursecatalogue = new CourseClasses.CourseCatalogue();
 var unitindex = null;
 
+/**List of all filters active. */
 var filters:Filter[] = [];
-/*
-{
-	"filtername": [
-		"class1",
-		"class2",
-		... ]
-	// next filter.
-	...
-}
-
+/**The current active filter that is still being modified.
+ * Once 'enter' is pressed, this is moved to [[filters]] and
+ * activefilter is set to a new [[Filter]].
 */
-var activefilter = new Filter(); // the filter buffer. if press enter, move it to @filters.
+var activefilter = new Filter();
+/**The current text buffer for the filter bar. */
 var buffer = "";
+/**Stores the setTimeout() index for the search bar. */
 var searchboxTimeout = null;
 
-
-// Gets a string representation of a time array
-
-
-// Takes the list of required components from course, and compares it
-// vs selected components. If not completely fulfilled, return
-// the components that need to be selected still.
-// sectionsSelected should be a list of the actual components.
+/**
+ * Takes the list of required components from [[Course]], and
+ * compares it vs the currently selected components. If the
+ * requirements aren't fully filled, it returns the components that
+ * are missing.
+ * @param courseinfo The course to check against.
+ * @param sectionsSelected The selected course sections.
+ * @returns List of missing components
+ */
 function satisfiedCourseRequirements(courseinfo:CourseClasses.Course, sectionsSelected:CourseClasses.SelectedCourse[]) {
 	var reqs = courseinfo.requiredcomponents;
 	var components:string[] = [];
@@ -67,6 +76,11 @@ function satisfiedCourseRequirements(courseinfo:CourseClasses.Course, sectionsSe
 	return stillrequired;
 }
 
+/**
+ * Check if a given component overlaps with any of the already selected courses.
+ * @param component Component to check collision for.
+ * @param courses List of all selected courses.
+ */
 function timeCollides(component:CourseClasses.CourseComponent, courses:CourseClasses.SelectedCourse[]) {
 	let classtimes1 = component.classtimes;
 	for (let i = 0; i < courses.length; i++) {
@@ -83,11 +97,18 @@ function timeCollides(component:CourseClasses.CourseComponent, courses:CourseCla
 	return false;
 }
 
+/**Returns the larger of a and b. */
 function max(a, b) {
 	if (a > b) return a;
 	return b;
 }
 
+/**
+ * Two Filters are merged, with the higher priority being adopted.
+ * @param f1 
+ * @param f2 
+ * @returns List of SearchResult after merging, sorted by priority.
+ */
 function filterintersect(f1:SearchResult[], f2:SearchResult[]) {
 	var ret:SearchResult[] = [];
 	var f1Len = f1.length;
@@ -105,7 +126,13 @@ function filterintersect(f1:SearchResult[], f2:SearchResult[]) {
 	return ret;
 }
 
-// Combines the various filters and displays the results in the search area.
+/**
+ * Combines the various filters and displays the results in the search area.
+ * @param includeActive Whether to also display the active filter's results.
+ * @param scrollTo To prevent the search results from jumping around, 
+ * the provided CSS selector `scrollTo` will be used to attempt to keep 
+ * the results at roughly the 'same' location.
+ */
 function displaySearchResults(includeActive:boolean, scrollTo:string) {
 	// filters looks like [[filter, [results]], [filter2, results2]]
 	var results = filters.map(function(filter){
@@ -201,7 +228,11 @@ function displaySearchResults(includeActive:boolean, scrollTo:string) {
 	decideNothingMessage(d3.select("#searchresults"));
 }
 
-
+/**
+ * Handles text expander toggles.
+ * @param d d3's d
+ * @param i d3's i
+ */
 function expandOrContractText(d:[string, CourseClasses.CourseComponent[]], i:number) {
 	var me = d3.select(this);
 	var text = d3.select(this.parentNode).select(".desctext");
@@ -215,7 +246,11 @@ function expandOrContractText(d:[string, CourseClasses.CourseComponent[]], i:num
 	}
 }
 
-// Draws courses and components
+/**
+ * Draws courses and components in search results.
+ * @param d 
+ * @param i 
+ */
 function resultFormatter(d:[string, CourseClasses.CourseComponent[], number[]], i:number) {
 	var classcode:string = d[0];
 	var sectiondata:CourseClasses.CourseComponent[] = d[1];
@@ -273,6 +308,10 @@ function resultFormatter(d:[string, CourseClasses.CourseComponent[], number[]], 
 	});
 }
 
+/**
+ * The function used to sanitize all input.
+ * @param s The string to sanitize
+ */
 function sanitize(s) {
 	var out = "";
 	s = s.toLowerCase();
@@ -287,6 +326,11 @@ function sanitize(s) {
 	return out;
 }
 
+/**
+ * Decides when to show "Enter something to get started!"
+ * @param selection The css selector for the search bar, probably.
+ * @todo figure out what selection is
+ */
 function decideNothingMessage(selection){
 	var num = selection[0][0].childNodes.length;
 	if (num > 1) {
@@ -311,9 +355,15 @@ function decideNothingMessage(selection){
 	thing.text(msg);
 }
 
-
+/**
+ * Holds search results for filtering, including priority info.
+ * Priority is currently decided by how early the search term
+ * shows up in the course's "search text".
+ */
 class SearchResult {
+	/**The course name for this result. */
 	coursename:string;
+	/**The priority score for this result. */
 	priority:number;
 	constructor(coursename:string, priority:number) {
 		this.coursename = coursename;
@@ -321,7 +371,11 @@ class SearchResult {
 	}
 }
 
-// Gets all courses that satisfy filter "d"
+/**
+ * Gets all courses that satisfy the filter.
+ * @param filter 
+ * @returns List of courses that satisfy the filter.
+ */
 function search(filter:string) {
 	var results:SearchResult[] = []
 	// Find all the things that have d, and display.
@@ -343,7 +397,10 @@ function search(filter:string) {
 	return results
 }
 
-// for testing purposes
+/**
+ * Testing function to programmatically add an active filter.
+ * @param filter The filter to add.
+ */
 function setFilterTo(filter) {
 	var filterobj = new Filter();
 	filterobj.raw = filter;
@@ -357,6 +414,10 @@ function setFilterTo(filter) {
 	decideNothingMessage(d3.select("#searchresults"));
 }
 
+/**
+ * Renders a filter's "blue tag" under the search bar and
+ * re-initializes activeFilter.
+ */
 function setFilter() {
 	filters.push(activefilter);
 	d3.select("#filters").append("span")
@@ -369,6 +430,9 @@ function setFilter() {
 	decideNothingMessage(d3.select("#searchresults"));
 }
 
+/**
+ * Automatically sets a new filter once the user types a space.
+ */
 function setFilterIfSpaces() {
 	var strs = activefilter.raw.split(" ");
 	if (strs.length > 1) {
@@ -392,6 +456,11 @@ function setFilterIfSpaces() {
 	decideNothingMessage(d3.select("#searchresults"));
 }
 
+/**
+ * On-click function for deleting a filter.
+ * @param d d3's d
+ * @param i d3's i
+ */
 function removefilter(d, i:number) {
 	var index = -1;
 	// questionable for loop.
@@ -406,6 +475,10 @@ function removefilter(d, i:number) {
 	displaySearchResults(true, undefined);
 }
 
+/**
+ * Handles keydown events for the search bar,
+ * as well as executing searches.
+ */
 function searchbox(){
 	if(coursecatalogue) {
 		activefilter.raw = this.value;
@@ -426,15 +499,26 @@ function searchbox(){
 	}
 }
 
-function addToCourses(code, sectionindex, sectiondata) {
+/**
+ * Adds a course to the calendar.
+ * Also redraws search results.
+ * @param code The course name (eg, CSCI-SH 101)
+ * @param sectionindex The section code, not necessarily a number.
+ * @param sectiondata 
+ * @todo figure out if sectiondata is still needed. seems no.
+ */
+function addToCourses(code:string, sectionindex:string, sectiondata) {
 	var courseprofile = new CourseClasses.SelectedCourse(coursecatalogue.table[code], sectionindex);
 	calendars[active].courses.push(courseprofile);
-	displaySearchResults(true, utility.sanitizeForSelector(code)); // because need to update conflicting stuff
+	displaySearchResults(true, utility.sanitizeForSelector(code)); // because need to update conflicting classes
 	calendars[active].draw();
 
 	updateURLExport();
 }
 
+/**
+ * Updates the base 64 URL export.
+ */
 function updateURLExport() {
 	var exportArray = [];
 	for (var i = 0; i < calendars[active].courses.length; i++) {
@@ -449,6 +533,9 @@ function updateURLExport() {
 
 //////////////////////////////
 
+/**
+ * Updates the modal table that displays all course selected.
+ */
 function exportCourseNumbers() {
 
 	var out = calendars[active].courses.map(function(d){
@@ -471,11 +558,18 @@ function exportCourseNumbers() {
 	d3.select("#menumodal").style("display", "none");
 }
 
-// from MDN https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/btoa
+/**
+ * Converts a byte string to base 64.
+ * @see MDN https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/btoa
+ * @param str 
+ */
 function utoa(str) {
     return window.btoa(encodeURIComponent(str));
 }
 
+/**
+ * Renders a copy of the calendar and triggers a download.
+ */
 function exportImage() {
 	d3.text("https://fonts.googleapis.com/css?family=Open+Sans", function(e, fontcss){
 		d3.text("jeeves.css", function(e, jeevescss){
@@ -507,6 +601,9 @@ function exportImage() {
 	})
 }
 
+/**
+ * Initializes a new calendar and pans camera to it.
+ */
 function newcalendar() {
 	new Draw.Calendar(calendars);
 	Draw.transitionViewTo(calendars.length-1, calendars);
@@ -515,6 +612,9 @@ function newcalendar() {
 	updateURLExport();
 }
 
+/**
+ * Makes a deep copy of an existing calendar and pans camera to it.
+ */
 function clonecalendar() {
 	var current = calendars[active];
 	new Draw.Calendar(calendars);
@@ -530,18 +630,31 @@ function clonecalendar() {
 	updateURLExport();
 }
 
+/**
+ * Clicking Remove causes it to turn into a red button that says "Really delete?"
+ * This function resets remove button to the original state.
+ * @param target The button to affect.
+ */
 function resetremovebutton(target:d3.Selection<any>) {
 	target.text("Delete")
 	.on("click", function(){askremove(calendars[active]);})
 	.classed("button-warning", false);
 }
 
+/**
+ * Resets remove button after some time.
+ * @param target The button.
+ */
 function wait(target) {
 	window.setTimeout(function(){
 	resetremovebutton(target);
 	}, 500);
 }
 
+/**
+ * See [[resetremovebutton]]().
+ * @param d The calendar to remove.
+ */
 function askremove(d:Draw.Calendar) {
 	var target = d3.select("#delete");
 	var timeout = window.setTimeout(function(){
@@ -555,6 +668,12 @@ function askremove(d:Draw.Calendar) {
 	}).classed("button-warning", true);
 }
 
+/**
+ * Handles the logic of deleting a calendar.
+ * @param d Calendar to delete
+ * @param target
+ * @todo figure out what target is. 
+ */
 function removecalendar(d:Draw.Calendar, target:d3.Selection<any>) {
 	if (active >= calendars.length-1) active = calendars.length - 2;
 	if (active < 0) active = 0;
@@ -562,6 +681,9 @@ function removecalendar(d:Draw.Calendar, target:d3.Selection<any>) {
 	displaySearchResults(true, undefined);
 }
 
+/**
+ * Pans camera to the calendar to the left.
+ */
 function scrollleft() {
 	active = active - 1;
 	if (active < 0) active = 0;
@@ -570,6 +692,9 @@ function scrollleft() {
 	updateURLExport();
 }
 
+/**
+ * Pans camera to the calendar to the right.
+ */
 function scrollright() {
 	active = active + 1;
 	if (active >= calendars.length) active = calendars.length - 1;
@@ -578,19 +703,31 @@ function scrollright() {
 	updateURLExport();
 }
 
+/**
+ * Displays the menu modal.
+ */
 function showMenu() {
 	d3.select("#menumodal").style("display", "");
 	d3.select("#modal_background").style("display", "");
 	modalmenuTether.position();
 }
 
+/**
+ * Hides the menu modal.
+ */
 function hideModals() {
 	d3.select("#modal_background").style("display", "none");
 	d3.select("#menumodal").style("display", "none");
 	d3.select("#courseexport").style("display", "none");
 }
 
+/**
+ * Tethers (from Tether.js) used in the modals.
+ */
 var modalmenuTether, courseexportTether;
+/**
+ * Initializes modals.
+ */
 function activateModals() {
 	modalmenuTether = new Tether({
 		element: "#menumodal",
@@ -608,6 +745,12 @@ function activateModals() {
 	});
 }
 
+/**
+ * Returns a Promise for reading a file rom courses/
+ * and importing into the course catalogue.
+ * @param filename The file from courses/ to read.
+ * @returns a Promise.
+ */
 function readJson(filename) {
 	return new Promise(function(fulfill, reject) {
 		d3.json("../courses/" + filename, function(e, d){
@@ -619,11 +762,19 @@ function readJson(filename) {
 	})});
 }
 
+/**
+ * Reads all files in parallel.
+ * @param filenames List of files to read.
+ */
 function promiseJson(filenames) {
 	return Promise.all(filenames.map(readJson));
 }
 
-export function init(testing) {
+/**
+ * Initializes the entire Jeeves app.
+ * @param testing 
+ */
+export function init(testing:boolean) {
 	Draw.outsidefuncs.push(displaySearchResults);
 	// load all files with a Promise.
 	var filenames:string[] = [];

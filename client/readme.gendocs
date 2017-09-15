@@ -1,0 +1,3 @@
+Need to install `TypeDoc` from `npm` locally. 
+
+`gendocs.bat` assumes TypeDoc is installed locally, in node_modules. If it is not, you may have to edit the batch file.
