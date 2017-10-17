@@ -31,7 +31,7 @@ def dumpJson(obj, subdir, fname):
 # phantomjs_path = "C:\coding\JeevesCoursePlanner\scraper\phantomjs.exe"
 #driver = webdriver.PhantomJS(executable_path=phantomjs_path, service_log_path=os.path.devnull)
 #driver.set_window_size(1400, 1000)
-driver = webdriver.Firefox()
+driver = webdriver.Chrome()
 
 driver.get("http://albert.nyu.edu/course-finder")
 driver.select = driver.find_element_by_css_selector # too wordy

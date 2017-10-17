@@ -20,8 +20,8 @@ Calling the script using "python script.py min" will output a json
 file with no indentation.
 """
 DIRNAME   = os.path.dirname(os.path.abspath(__file__)) + "/"
-SOURCEDIR = "fall2017out/raw/"
-OUTPUTDIR = "fall2017out/permajor/"
+SOURCEDIR = "spring2018out/raw/"
+OUTPUTDIR = "spring2018out/permajor/"
 
 # s is a set
 def addWordsToSet(line, s):
@@ -69,8 +69,6 @@ def stringFromTags(tags):
         except:
             out.append(t)
     return "".join(out)
-
-
 
 def processcourse(course):
     soup = BS(course["table"], "html5lib")
@@ -226,6 +224,8 @@ if __name__ == "__main__":
         for file in files:
             if file == "out-courses.json":
                 continue
+            if (os.stat(root + "/" + file).st_size == 0):
+                continue
             print(file)
             with codecs.open(root + "/" + file, "r", "utf-8") as f:
                 data.append(json.load(f))
@@ -236,6 +236,8 @@ if __name__ == "__main__":
         for courseid in college:
             course = college[courseid]
             processcourse(course)
+        if filecounter % 10 == 0:
+            print(filecounter)
 
     # Next, sort by school/major (CSCI-SHU and CSCI-AB are different, one is in SHU and the other in AB) and output.
     with codecs.open(DIRNAME + "majorcodearray.json", "r", "utf-8") as f:

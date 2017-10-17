@@ -21,7 +21,7 @@ def dumpJsonAndChmod(obj, fname):
         json.dump(obj, f)
     subprocess.call(["chown", "skyrunner", DIRNAME + fname])
 
-driver = webdriver.Firefox()
+driver = webdriver.Chrome()
 driver.get("http://albert.nyu.edu/course-finder")
 driver.select = driver.find_element_by_css_selector # too wordy
 
@@ -63,16 +63,17 @@ links = []
 # unless i only want nyu shanghai's
 select = Select(driver.find_element_by_id('NYU_CLS_WRK2_DESCR254$33$'))
 #select by visible text
-select.select_by_visible_text('NYU Shanghai')
-time.sleep(5)
+#select.select_by_visible_text('NYU Shanghai')
+#time.sleep(5)
 
 for tag in driver.find_elements_by_tag_name("a"):
     tagid = tag.get_attribute("id")
     if "LINK" in tagid:
-        links.append(tag.text.replace("\n", ""))
+        links.append(tag.text)
         
 with open("possiblemajors.txt", "w") as f:
     for link in links:
+            link = link.split("\n")[0] # remove trailing newline
             f.write(link + "\n")
 # subprocess.call(["chown", "skyrunner", DIRNAME + "possiblemajors.txt"])
 print("Done.")
