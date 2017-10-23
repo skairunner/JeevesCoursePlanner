@@ -549,7 +549,7 @@ function exportCourseNumbers() {
 	table.append("tr").selectAll("th").data(["Course code", "Course name", "Component type", "ID"]).enter()
 		 .append("th").text(function(d){return d;});
 	table.selectAll(".coursetr").data(out)
-		.enter().append("tr").classed(".coursetr", true).selectAll("td").data(function(d:(string|number)[]){return d;}) // intermediate data type specified
+		.enter().append("tr").classed("coursetr", true).selectAll("td").data(function(d:(string|number)[]){return d;}) // intermediate data type specified
 		.enter()
 		.append("td").text(function(d) {return d;});
 
