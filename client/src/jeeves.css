@@ -235,7 +235,11 @@ input[type="button"].button-warning {
 }
 
 #courseexport {
+	max-width: 70vw;
+}
 
+#courseexport td {
+	max-width: 30em;	
 }
 
 .conflicting {
