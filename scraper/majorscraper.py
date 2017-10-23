@@ -36,10 +36,10 @@ driver.switch_to_frame("TargetContent")
 
 # We are now in the albert course search.
 checkbox = WebDriverWait(driver, timeout).until(
-        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_FALL"))
+        EC.presence_of_element_located((By.CSS_SELECTOR, "#NYU_CLS_WRK_NYU_SPRING"))
     ) # selects the semester
 checkbox.click()
-time.sleep(5)
+time.sleep(3)
 
 """
     {
