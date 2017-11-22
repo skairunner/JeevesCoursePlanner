@@ -105,8 +105,8 @@ function max(a, b) {
 
 /**
  * Two Filters are merged, with the higher priority being adopted.
- * @param f1 
- * @param f2 
+ * @param f1
+ * @param f2
  * @returns List of SearchResult after merging, sorted by priority.
  */
 function filterintersect(f1:SearchResult[], f2:SearchResult[]) {
@@ -129,8 +129,8 @@ function filterintersect(f1:SearchResult[], f2:SearchResult[]) {
 /**
  * Combines the various filters and displays the results in the search area.
  * @param includeActive Whether to also display the active filter's results.
- * @param scrollTo To prevent the search results from jumping around, 
- * the provided CSS selector `scrollTo` will be used to attempt to keep 
+ * @param scrollTo To prevent the search results from jumping around,
+ * the provided CSS selector `scrollTo` will be used to attempt to keep
  * the results at roughly the 'same' location.
  */
 function displaySearchResults(includeActive:boolean, scrollTo:string) {
@@ -248,8 +248,8 @@ function expandOrContractText(d:[string, CourseClasses.CourseComponent[]], i:num
 
 /**
  * Draws courses and components in search results.
- * @param d 
- * @param i 
+ * @param d
+ * @param i
  */
 function resultFormatter(d:[string, CourseClasses.CourseComponent[], number[]], i:number) {
 	var classcode:string = d[0];
@@ -373,7 +373,7 @@ class SearchResult {
 
 /**
  * Gets all courses that satisfy the filter.
- * @param filter 
+ * @param filter
  * @returns List of courses that satisfy the filter.
  */
 function search(filter:string) {
@@ -504,7 +504,7 @@ function searchbox(){
  * Also redraws search results.
  * @param code The course name (eg, CSCI-SH 101)
  * @param sectionindex The section code, not necessarily a number.
- * @param sectiondata 
+ * @param sectiondata
  * @todo figure out if sectiondata is still needed. seems no.
  */
 function addToCourses(code:string, sectionindex:string, sectiondata) {
@@ -520,7 +520,7 @@ function addToCourses(code:string, sectionindex:string, sectiondata) {
  * Updates the base 64 URL export.
  */
 function updateURLExport() {
-	var exportArray = [];
+	var exportArray = [JSON.parse(window.localStorage.getItem("schools"))];
 	for (var i = 0; i < calendars[active].courses.length; i++) {
 
 		exportArray.push([
@@ -561,7 +561,7 @@ function exportCourseNumbers() {
 /**
  * Converts a byte string to base 64.
  * @see MDN https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/btoa
- * @param str 
+ * @param str
  */
 function utoa(str) {
     return window.btoa(encodeURIComponent(str));
@@ -672,7 +672,7 @@ function askremove(d:Draw.Calendar) {
  * Handles the logic of deleting a calendar.
  * @param d Calendar to delete
  * @param target
- * @todo figure out what target is. 
+ * @todo figure out what target is.
  */
 function removecalendar(d:Draw.Calendar, target:d3.Selection<any>) {
 	if (active >= calendars.length-1) active = calendars.length - 2;
@@ -772,12 +772,20 @@ function promiseJson(filenames) {
 
 /**
  * Initializes the entire Jeeves app.
- * @param testing 
+ * @param testing
  */
 export function init(testing:boolean) {
 	Draw.outsidefuncs.push(displaySearchResults);
 	// load all files with a Promise.
 	var filenames:string[] = [];
+
+	var exportClass = [];
+	if (window.location.hash.length !== 0) {
+		// Load CourseClasses
+		exportClass = JSON.parse(atob(window.location.hash.substr(1)));
+		window.localStorage.setItem("schools", JSON.stringify(exportClass[0]));
+	}
+
 	var schools = JSON.parse(window.localStorage.getItem("schools"));
 	if (schools.length == 0) {
 		filenames = ["min_SHU_courses.flat.json"];
@@ -804,13 +812,10 @@ export function init(testing:boolean) {
 		d3.select("#saveasimgbutton").on("click", exportImage);
 		d3.select("#modal_background").on("click", hideModals);
 		activateModals();
-		if (window.location.hash.length !== 0) {
-			// Load CourseClasses
-			var json = JSON.parse(atob(window.location.hash.substr(1)));
-			for (var key in json) {
-				addToCourses(json[key][0], json[key][1], null);
-			}
+		for (var i = 1; i < exportClass.length; i++) {
+			addToCourses(exportClass[i][0], exportClass[i][1], null);
 		}
+
 	}).catch(function(error) {
 		throw new Error(error);
 	});
